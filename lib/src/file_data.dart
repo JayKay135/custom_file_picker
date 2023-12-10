@@ -49,7 +49,7 @@ class FileData {
   }
 
   String getPath() {
-    return parent != null ? "${parent!.getPath()}/$name" : "$name";
+    return parent != null ? "${parent!.getPath()}/$name" : name;
   }
 
   FileData.fromJson(Map<String, dynamic> json)

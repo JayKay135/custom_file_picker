@@ -13,12 +13,16 @@ class FilePickerWidget extends StatefulWidget {
     super.key,
     required this.windowController,
     required this.file,
+    this.saveAs = false,
+    this.suggestedFile,
   }) {
     selectedFile = null;
   }
 
   final WindowController windowController;
   final FileData file;
+  final bool saveAs;
+  final FileData? suggestedFile;
 
   static FileData? selectedFile;
 
@@ -31,6 +35,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
   List<double>? sizes;
 
   late bool _deselectAll;
+
+  late TextEditingController _textEditingController;
 
   Widget _createHeader(FileData file) {
     List<Widget> content = [];
@@ -174,22 +180,50 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              widget.saveAs
+                  ? Expanded(
+                      child: TextField(
+                        controller: _textEditingController,
+                        decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                      ),
+                    )
+                  : const SizedBox(),
+              widget.saveAs ? const SizedBox(width: 10) : const SizedBox(),
               ElevatedButton(
                   onPressed: () async {
-                    if (FilePickerWidget.selectedFile != null) {
+                    if (!widget.saveAs && FilePickerWidget.selectedFile != null) {
                       // remove children data to decrease String size
                       FilePickerWidget.selectedFile!.children = [];
 
                       await DesktopMultiWindow.invokeMethod(
                         0,
                         "open",
-                        jsonEncode(FilePickerWidget.selectedFile!.toJson()),
+                        "${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}",
+                        // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
+                      );
+
+                      widget.windowController.close();
+                    } else if (widget.saveAs) {
+                      int dotIndex = _textEditingController.text.lastIndexOf('.');
+
+                      String name = dotIndex == -1 ? _textEditingController.text : _textEditingController.text.substring(0, dotIndex);
+                      String extension = dotIndex == -1 ? '' : _textEditingController.text.substring(dotIndex + 1);
+
+                      widget.suggestedFile!.name = name;
+                      widget.suggestedFile!.extension = extension;
+                      widget.suggestedFile!.parent = _openedFile;
+
+                      await DesktopMultiWindow.invokeMethod(
+                        0,
+                        "saveAs",
+                        "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
+                        // jsonEncode(widget.suggestedFile!.toJson()),
                       );
 
                       widget.windowController.close();
                     }
                   },
-                  child: const Text("Open")),
+                  child: Text(widget.saveAs ? "Save As" : "Open")),
               const SizedBox(width: 10),
               ElevatedButton(
                   onPressed: () {
@@ -209,6 +243,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
     _openedFile = widget.file;
 
     _deselectAll = false;
+
+    _textEditingController = TextEditingController(text: widget.saveAs ? "${widget.suggestedFile!.name}.${widget.suggestedFile!.extension}" : "");
 
     super.initState();
   }
