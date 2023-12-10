@@ -72,16 +72,32 @@ class _TestWidgetState extends State<TestWidget> {
     ],
   );
 
+  final FileData suggestedFile = FileData.createFile("newFile", "txt", DateTime.now());
+
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: ElevatedButton(
-        onPressed: () {
-          FilePicker.openSecondaryWindow(file, (FileData fileData) {
-            print("selected: ${fileData.getPath()}");
-          });
-        },
-        child: const Text("Open File Picker"),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              FilePicker.open(file, (String path) {
+                print("selected: $path");
+              });
+            },
+            child: const Text("Open File"),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              FilePicker.saveAs(file, suggestedFile, (String path) {
+                print("selected: $path");
+              });
+            },
+            child: const Text("Save as"),
+          ),
+        ],
       ),
     );
   }
