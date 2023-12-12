@@ -41,7 +41,7 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
   }
 
   List<Widget> _createListContent(BoxConstraints constraints) {
-    maxSize = constraints.maxWidth - dividerSize * widget.widgets.length - 1;
+    maxSize = constraints.maxWidth - dividerSize * (widget.widgets.length - 1);
 
     List<Widget> newWidgets = [];
 
@@ -104,10 +104,11 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
                       // }
 
                       double newWidth1 = (startSizes[i] + totalDelta).clamp(minWidth, maxSize - minWidth);
-                      double newWidth2 = (startSizes[i + 1] - totalDelta).clamp(minWidth, maxSize - newWidth1);
+                      double newWidth2 = (startSizes[i + 1] - totalDelta).clamp(minWidth, maxSize - minWidth);
 
                       // ensure total size doesn't exceed maxSize
-                      if (newWidth1 + newWidth2 <= startSizes[i] + startSizes[i + 1] + 0.01) {
+                      if (newWidth1 + newWidth2 <= startSizes[i] + startSizes[i + 1]) {
+                        // + 0.01
                         sizes[i] = newWidth1;
                         sizes[i + 1] = newWidth2;
                       }

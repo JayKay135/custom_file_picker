@@ -19,6 +19,10 @@ class FileData {
     this.children,
   );
 
+  FileData copy() {
+    return FileData(name, extension, lastChanged.copyWith(), isFolder, children.map((e) => e.copy()).toList());
+  }
+
   static FileData createFolder(String name, DateTime lastChanged, List<FileData> children) {
     FileData fileData = FileData(name, "", lastChanged, true, children);
 

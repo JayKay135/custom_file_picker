@@ -1,12 +1,9 @@
 import 'dart:convert';
-import 'package:custom_file_picker/src/file_picker_widget.dart';
-import 'package:custom_file_picker/src/file_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 
 import '../custom_file_picker.dart';
+import 'file_picker_widget.dart';
 
 class FilePicker {
   final Widget mainApp;
@@ -29,8 +26,12 @@ class FilePicker {
       bool saveAs = data["saveAs"];
 
       FileData? suggestedFile;
+      List<String>? extensions;
+
       if (saveAs) {
         suggestedFile = FileData.fromJson(data["suggestedFile"]);
+      } else {
+        extensions = (data["extensions"] as List<dynamic>).map((e) => e as String).toList();
       }
 
       // set parent references
@@ -46,6 +47,7 @@ class FilePicker {
               file: file,
               saveAs: saveAs,
               suggestedFile: suggestedFile,
+              extensions: extensions,
             ),
           ),
           theme: theme,
@@ -90,10 +92,36 @@ class FilePicker {
     }
   }
 
-  static Future<void> open(FileData fileHistory, Function(String) onSelectedFile) async {
+  /// Recursively removes all files that don't have one of the allowed extensions
+  static void _keepOnlyExtension(FileData fileData, List<String> extension) {
+    fileData.children.removeWhere((element) => !element.isFolder && !extension.contains(element.extension));
+
+    // continue search
+    for (FileData child in fileData.children) {
+      _keepOnlyExtension(child, extension);
+    }
+  }
+
+  /// Opens the file picker dialog and allows the user to select a file.
+  ///
+  /// [fileHistory] : Is used to specify the initial directory or file that should be displayed in the file picker dialog.
+  /// [extensions] : Is a list of file extensions that the user is allowed to select.
+  /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// FilePicker.open(fileHistory, ['txt', 'pdf'], (String filePath) {
+  ///   print('Selected file: $filePath');
+  /// });
+  /// ```
+  static Future<void> open(FileData fileHistory, List<String> extensions, Function(String) onSelectedFile) async {
+    FileData files = fileHistory.copy();
+    _keepOnlyExtension(files, extensions);
+
     final window = await DesktopMultiWindow.createWindow(jsonEncode({
-      'file': fileHistory,
+      'file': files,
       'saveAs': false,
+      'extensions': extensions,
     }));
     window
       ..setFrame(const Offset(0, 0) & const Size(800, 450))
@@ -114,15 +142,24 @@ class FilePicker {
     });
   }
 
-  static Future<void> saveAs(
-    FileData fileHistory,
-    FileData suggestedFile,
-    Function(String) onSelectedFile,
-  ) async {
-    _removeFiles(fileHistory);
+  /// Saves the selected file as a new file.
+  ///
+  /// [fileHistory] : Represents the history of previously selected files.
+  /// [suggestedFile] : Represents the file that is suggested to be saved.
+  /// [onSelectedFile] : Is a callback function that is called when a file is selected.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// FilePicker.saveAs(fileHistory, suggestedFile, (path) {
+  ///   // Handle the selected file path
+  /// });
+  /// ```
+  static Future<void> saveAs(FileData fileHistory, FileData suggestedFile, Function(String) onSelectedFile) async {
+    FileData files = fileHistory.copy();
+    _removeFiles(files);
 
     final window = await DesktopMultiWindow.createWindow(jsonEncode({
-      'file': fileHistory,
+      'file': files,
       'saveAs': true,
       'suggestedFile': suggestedFile,
     }));

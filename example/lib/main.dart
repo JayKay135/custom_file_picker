@@ -67,7 +67,7 @@ class _TestWidgetState extends State<TestWidget> {
           FileData.createFileFromFileName("test.txt", DateTime.now()),
         ]),
       ]),
-      FileData.createFileFromFileName("test.txt", DateTime.now()),
+      FileData.createFileFromFileName("test.xml", DateTime.now()),
       FileData.createFileFromFileName("idk.urdf", DateTime.now()),
     ],
   );
@@ -82,7 +82,7 @@ class _TestWidgetState extends State<TestWidget> {
         children: [
           ElevatedButton(
             onPressed: () {
-              FilePicker.open(file, (String path) {
+              FilePicker.open(file, ["xml", "png"], (String path) {
                 print("selected: $path");
               });
             },
