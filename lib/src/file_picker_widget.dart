@@ -15,6 +15,7 @@ class FilePickerWidget extends StatefulWidget {
     required this.file,
     this.saveAs = false,
     this.suggestedFile,
+    this.extensions,
   }) {
     selectedFile = null;
   }
@@ -23,6 +24,7 @@ class FilePickerWidget extends StatefulWidget {
   final FileData file;
   final bool saveAs;
   final FileData? suggestedFile;
+  final List<String>? extensions;
 
   static FileData? selectedFile;
 
@@ -188,6 +190,17 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                       ),
                     )
                   : const SizedBox(),
+              widget.saveAs
+                  ? Container(
+                      padding: EdgeInsets.all(7),
+                      margin: EdgeInsets.only(left: 5),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(".${widget.suggestedFile!.extension}"),
+                    )
+                  : const SizedBox(),
               widget.saveAs ? const SizedBox(width: 10) : const SizedBox(),
               ElevatedButton(
                   onPressed: () async {
@@ -204,13 +217,13 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
                       widget.windowController.close();
                     } else if (widget.saveAs) {
-                      int dotIndex = _textEditingController.text.lastIndexOf('.');
+                      // int dotIndex = _textEditingController.text.lastIndexOf('.');
 
-                      String name = dotIndex == -1 ? _textEditingController.text : _textEditingController.text.substring(0, dotIndex);
-                      String extension = dotIndex == -1 ? '' : _textEditingController.text.substring(dotIndex + 1);
+                      // String name = dotIndex == -1 ? _textEditingController.text : _textEditingController.text.substring(0, dotIndex);
+                      // String extension = dotIndex == -1 ? '' : _textEditingController.text.substring(dotIndex + 1);
 
-                      widget.suggestedFile!.name = name;
-                      widget.suggestedFile!.extension = extension;
+                      // widget.suggestedFile!.name = name;
+                      // widget.suggestedFile!.extension = extension;
                       widget.suggestedFile!.parent = _openedFile;
 
                       await DesktopMultiWindow.invokeMethod(
@@ -244,7 +257,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
     _deselectAll = false;
 
-    _textEditingController = TextEditingController(text: widget.saveAs ? "${widget.suggestedFile!.name}.${widget.suggestedFile!.extension}" : "");
+    _textEditingController = TextEditingController(text: widget.saveAs ? widget.suggestedFile!.name : "");
 
     super.initState();
   }
