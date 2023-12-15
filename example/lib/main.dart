@@ -97,6 +97,23 @@ class _TestWidgetState extends State<TestWidget> {
             },
             child: const Text("Save as"),
           ),
+          const Divider(height: 20, thickness: 3),
+          ElevatedButton(
+            onPressed: () {
+              FileData fileData = file.copy()..children = [];
+              FilePicker.openAsync(file, ["xml", "png"], (String path) async {
+                print("returning files for: $path");
+                return FileData.createFolder("TEST", DateTime.now(), [
+                  FileData.createFileFromFileName("idk.xml", DateTime.now()),
+                  FileData.createFileFromFileName("something.png", DateTime.now()),
+                  FileData.createFileFromFileName("test.txt", DateTime.now()),
+                ]);
+              }, (String path) {
+                print("selected: $path");
+              });
+            },
+            child: const Text("Open File Async"),
+          ),
         ],
       ),
     );

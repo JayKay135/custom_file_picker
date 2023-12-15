@@ -34,6 +34,8 @@ class FilePicker {
         extensions = (data["extensions"] as List<dynamic>).map((e) => e as String).toList();
       }
 
+      bool async = data.containsKey("async") && data["async"];
+
       // set parent references
       _setParentReferences(file);
 
@@ -48,6 +50,7 @@ class FilePicker {
               saveAs: saveAs,
               suggestedFile: suggestedFile,
               extensions: extensions,
+              async: async,
             ),
           ),
           theme: theme,
@@ -135,6 +138,62 @@ class FilePicker {
           // Map<String, dynamic> data = jsonDecode(call.arguments);
           // onSelectedFile(FileData.fromJson(data));
           onSelectedFile(call.arguments);
+      }
+
+      // debugPrint('${call.method} ${call.arguments} $fromWindowId');
+      return "";
+    });
+  }
+
+  /// Opens the file picker dialog and allows the user to select a file.
+  /// It triggers the [getFileData] future whenever a new folder hierarchie is selected.
+  /// This way not the complete history data must be provided straight away.
+  /// But rather the actually required data is requested during runtime.
+  ///
+  /// [fileHistory] : Is used to specify the initial directory or file that should be displayed in the file picker dialog.
+  /// [extensions] : Is a list of file extensions that the user is allowed to select.
+  /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// FilePicker.open(fileHistory, ['txt', 'pdf'], (String filePath) {
+  ///   print('Selected file: $filePath');
+  /// });
+  /// ```
+  static Future<void> openAsync(
+    FileData fileHistory,
+    List<String> extensions,
+    Future<FileData> Function(String) getFileData,
+    Function(String) onSelectedFile,
+  ) async {
+    FileData files = fileHistory.copy();
+    _keepOnlyExtension(files, extensions);
+
+    final window = await DesktopMultiWindow.createWindow(jsonEncode({
+      'file': files,
+      'saveAs': false,
+      'extensions': extensions,
+      'async': true,
+    }));
+    window
+      ..setFrame(const Offset(0, 0) & const Size(800, 450))
+      ..center()
+      ..setTitle('File Picker')
+      ..show();
+
+    DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
+      switch (call.method) {
+        case "getFileData":
+          print("path: ${call.arguments}");
+          FileData newFileData = await getFileData(call.arguments);
+          String json = jsonEncode(newFileData);
+          return json;
+
+        case "open":
+          // Map<String, dynamic> data = jsonDecode(call.arguments);
+          // onSelectedFile(FileData.fromJson(data));
+          onSelectedFile(call.arguments);
+          break;
       }
 
       // debugPrint('${call.method} ${call.arguments} $fromWindowId');

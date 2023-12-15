@@ -16,6 +16,7 @@ class FilePickerWidget extends StatefulWidget {
     this.saveAs = false,
     this.suggestedFile,
     this.extensions,
+    this.async = false,
   }) {
     selectedFile = null;
   }
@@ -25,6 +26,7 @@ class FilePickerWidget extends StatefulWidget {
   final bool saveAs;
   final FileData? suggestedFile;
   final List<String>? extensions;
+  final bool async;
 
   static FileData? selectedFile;
 
@@ -148,9 +150,21 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                 deselect: _deselectAll,
                 onDoubleTab: () async {
                   if (file.children[index].isFolder) {
+                    if (widget.async) {
+                      var json = await DesktopMultiWindow.invokeMethod(
+                        0,
+                        "getFileData",
+                        file.children[index].getPath(),
+                        // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
+                      );
+
+                      _openedFile = FileData.fromJson(jsonDecode(json));
+                    } else {
+                      _openedFile = file.children[index];
+                    }
+
                     setState(() {
                       _deselectAll = true;
-                      _openedFile = file.children[index];
                     });
 
                     await Future.delayed(const Duration(milliseconds: 100));
