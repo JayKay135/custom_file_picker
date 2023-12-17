@@ -4,7 +4,6 @@ import 'package:custom_file_picker/src/custom_button.dart';
 import 'package:custom_file_picker/src/split_view_widget.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../custom_file_picker.dart';
 import 'file_widget.dart';
@@ -18,6 +17,7 @@ class FilePickerWidget extends StatefulWidget {
     this.suggestedFile,
     this.extensions,
     this.async = false,
+    this.showExtension = true,
   }) {
     selectedFile = null;
   }
@@ -28,6 +28,7 @@ class FilePickerWidget extends StatefulWidget {
   final FileData? suggestedFile;
   final List<String>? extensions;
   final bool async;
+  final bool showExtension;
 
   static FileData? selectedFile;
 
@@ -155,6 +156,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                     fileData: file.children[index],
                     sizes: sizes, // ?? List.generate(3, (index) => context.size!.width / 3),
                     deselect: _deselectAll,
+                    showExtension: widget.showExtension,
                     onDoubleTab: () async {
                       if (file.children[index].isFolder) {
                         if (widget.async) {
