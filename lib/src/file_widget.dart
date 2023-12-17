@@ -143,6 +143,7 @@ class _FileWidgetState extends State<FileWidget> {
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 2),
           padding: const EdgeInsets.only(left: 2),
+          height: 25,
           decoration: BoxDecoration(
               color: selected
                   ? Theme.of(context).colorScheme.primaryContainer
@@ -154,7 +155,9 @@ class _FileWidgetState extends State<FileWidget> {
                       : Colors.transparent,
               borderRadius: const BorderRadius.all(Radius.circular(2)),
               border: Border.all(color: selected && FileWidget.lastSelectedFile == this ? Theme.of(context).colorScheme.primary : Colors.transparent)),
-          child: Row(
+          child: ListView(
+            shrinkWrap: true,
+            scrollDirection: Axis.horizontal,
             children: [
               Image.asset(getImagePath(widget.fileData), width: 20),
               const SizedBox(width: 5),
@@ -165,13 +168,15 @@ class _FileWidgetState extends State<FileWidget> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(
-                width: widget.sizes != null ? widget.sizes![1] - 2 : 200,
-                child: Text(
-                  DateFormat("dd.MM.yyyy HH:mm").format(widget.fileData.lastChanged),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+              (widget.sizes != null ? widget.sizes![1] - 2 : 200) > 10
+                  ? SizedBox(
+                      width: widget.sizes != null ? widget.sizes![1] - 2 : 200,
+                      child: Text(
+                        DateFormat("dd.MM.yyyy HH:mm").format(widget.fileData.lastChanged),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )
+                  : const SizedBox(),
             ],
           ),
         ),

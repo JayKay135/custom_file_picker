@@ -184,10 +184,9 @@ class FilePicker {
     DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
       switch (call.method) {
         case "getFileData":
-          print("path: ${call.arguments}");
-          FileData newFileData = await getFileData(call.arguments);
-          String json = jsonEncode(newFileData);
-          return json;
+          FileData newFileData = (await getFileData(call.arguments)).copy();
+          _keepOnlyExtension(newFileData, extensions);
+          return jsonEncode(newFileData);
 
         case "open":
           // Map<String, dynamic> data = jsonDecode(call.arguments);
@@ -234,6 +233,61 @@ class FilePicker {
           // Map<String, dynamic> data = jsonDecode(call.arguments);
           // onSelectedFile(FileData.fromJson(data));
           onSelectedFile(call.arguments);
+      }
+
+      // debugPrint('${call.method} ${call.arguments} $fromWindowId');
+      return "";
+    });
+  }
+
+  /// Saves the selected file as a new file.
+  /// It triggers the [getFileData] future whenever a new folder hierarchie is selected.
+  /// This way not the complete history data must be provided straight away.
+  /// But rather the actually required data is requested during runtime.
+  ///
+  /// [fileHistory] : Represents the history of previously selected files.
+  /// [suggestedFile] : Represents the file that is suggested to be saved.
+  /// [onSelectedFile] : Is a callback function that is called when a file is selected.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// FilePicker.saveAs(fileHistory, suggestedFile, (path) {
+  ///   // Handle the selected file path
+  /// });
+  /// ```
+  static Future<void> saveAsAsync(
+    FileData fileHistory,
+    FileData suggestedFile,
+    Future<FileData> Function(String) getFileData,
+    Function(String) onSelectedFile,
+  ) async {
+    FileData files = fileHistory.copy();
+    _removeFiles(files);
+
+    final window = await DesktopMultiWindow.createWindow(jsonEncode({
+      'file': files,
+      'saveAs': true,
+      'suggestedFile': suggestedFile,
+      'async': true,
+    }));
+    window
+      ..setFrame(const Offset(0, 0) & const Size(800, 450))
+      ..center()
+      ..setTitle('File Picker')
+      ..show();
+
+    DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
+      switch (call.method) {
+        case "getFileData":
+          FileData newFileData = (await getFileData(call.arguments)).copy();
+          _removeFiles(newFileData);
+          return jsonEncode(newFileData);
+
+        case "saveAs":
+          // Map<String, dynamic> data = jsonDecode(call.arguments);
+          // onSelectedFile(FileData.fromJson(data));
+          onSelectedFile(call.arguments);
+          break;
       }
 
       // debugPrint('${call.method} ${call.arguments} $fromWindowId');
