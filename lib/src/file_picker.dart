@@ -9,8 +9,6 @@ class FilePicker {
   final Widget mainApp;
   final List<String> args;
 
-  static const bool showExtension = true;
-
   FilePicker(
     this.args,
     this.mainApp, {
@@ -34,6 +32,7 @@ class FilePicker {
         extensions = (data["extensions"] as List<dynamic>).map((e) => e as String).toList();
       }
 
+      bool showExtension = data.containsKey("showExtension") && data["showExtension"];
       bool async = data.containsKey("async") && data["async"];
 
       // set parent references
@@ -51,24 +50,11 @@ class FilePicker {
               suggestedFile: suggestedFile,
               extensions: extensions,
               async: async,
+              showExtension: showExtension,
             ),
           ),
           theme: theme,
           darkTheme: darkTheme,
-          // theme: ThemeData(
-          //   useMaterial3: true,
-          //   colorScheme: ColorScheme.fromSeed(
-          //     brightness: Brightness.light,
-          //     seedColor: Colors.blue,
-          //   ),
-          // ),
-          // darkTheme: ThemeData(
-          //   useMaterial3: true,
-          //   colorScheme: ColorScheme.fromSeed(
-          //     brightness: Brightness.dark,
-          //     seedColor: Colors.blue,
-          //   ),
-          // ),
         ),
       );
     } else {
@@ -110,6 +96,7 @@ class FilePicker {
   /// [fileHistory] : Is used to specify the initial directory or file that should be displayed in the file picker dialog.
   /// [extensions] : Is a list of file extensions that the user is allowed to select.
   /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
+  /// [showExtension] : Whether or not the file extension will be displayed
   ///
   /// Example usage:
   /// ```dart
@@ -117,13 +104,19 @@ class FilePicker {
   ///   print('Selected file: $filePath');
   /// });
   /// ```
-  static Future<void> open(FileData fileHistory, List<String> extensions, Function(String) onSelectedFile) async {
+  static Future<void> open(
+    FileData fileHistory,
+    List<String> extensions,
+    Function(String) onSelectedFile, {
+    bool showExtension = true,
+  }) async {
     FileData files = fileHistory.copy();
     _keepOnlyExtension(files, extensions);
 
     final window = await DesktopMultiWindow.createWindow(jsonEncode({
       'file': files,
       'saveAs': false,
+      'showExtension': showExtension,
       'extensions': extensions,
     }));
     window
@@ -153,10 +146,14 @@ class FilePicker {
   /// [fileHistory] : Is used to specify the initial directory or file that should be displayed in the file picker dialog.
   /// [extensions] : Is a list of file extensions that the user is allowed to select.
   /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
+  /// [showExtension] : Whether or not the file extension will be displayed
   ///
   /// Example usage:
   /// ```dart
-  /// FilePicker.open(fileHistory, ['txt', 'pdf'], (String filePath) {
+  /// FilePicker.open(fileHistory, ['txt', 'pdf'], (String path) async {
+  ///   print("returning files for: $path");
+  ///   return FileData ...
+  /// }, (String filePath) {
   ///   print('Selected file: $filePath');
   /// });
   /// ```
@@ -164,8 +161,9 @@ class FilePicker {
     FileData fileHistory,
     List<String> extensions,
     Future<FileData> Function(String) getFileData,
-    Function(String) onSelectedFile,
-  ) async {
+    Function(String) onSelectedFile, {
+    bool showExtension = true,
+  }) async {
     FileData files = fileHistory.copy();
     _keepOnlyExtension(files, extensions);
 
@@ -173,6 +171,7 @@ class FilePicker {
       'file': files,
       'saveAs': false,
       'extensions': extensions,
+      'showExtension': showExtension,
       'async': true,
     }));
     window
@@ -208,7 +207,7 @@ class FilePicker {
   ///
   /// Example usage:
   /// ```dart
-  /// FilePicker.saveAs(fileHistory, suggestedFile, (path) {
+  /// FilePicker.saveAs(fileHistory, suggestedFile, (String path) {
   ///   // Handle the selected file path
   /// });
   /// ```
@@ -251,7 +250,10 @@ class FilePicker {
   ///
   /// Example usage:
   /// ```dart
-  /// FilePicker.saveAs(fileHistory, suggestedFile, (path) {
+  /// FilePicker.saveAs(fileHistory, suggestedFile, (String path) async {
+  ///   print("returning files for: $path");
+  ///   return FileData ...
+  /// }, (String path) {
   ///   // Handle the selected file path
   /// });
   /// ```

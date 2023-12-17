@@ -1,8 +1,9 @@
-import 'package:custom_file_picker/src/file_picker_widget.dart';
 import 'package:intl/intl.dart';
-
-import 'package:custom_file_picker/custom_file_picker.dart';
 import 'package:flutter/material.dart';
+
+import '../custom_file_picker.dart';
+import 'file_picker_widget.dart';
+import 'immediate_multi_tap_gesture_recognizer.dart';
 
 // ignore: must_be_immutable
 class FileWidget extends StatefulWidget {
@@ -12,6 +13,7 @@ class FileWidget extends StatefulWidget {
     this.onDoubleTab,
     this.sizes,
     this.deselect = false,
+    this.showExtension = true,
   }) {
     _globalKey = GlobalKey<_FileWidgetState>();
   }
@@ -20,6 +22,7 @@ class FileWidget extends StatefulWidget {
   final Function? onDoubleTab;
   final List<double>? sizes;
   final bool deselect;
+  final bool showExtension;
 
   // ignore: library_private_types_in_public_api
   late GlobalKey<_FileWidgetState> _globalKey;
@@ -164,7 +167,7 @@ class _FileWidgetState extends State<FileWidget> {
               SizedBox(
                 width: widget.sizes != null ? widget.sizes![0] - 20 : 200,
                 child: Text(
-                  widget.fileData.isFolder ? widget.fileData.name : "${widget.fileData.name}.${FilePicker.showExtension ? widget.fileData.extension : ""}",
+                  widget.fileData.isFolder ? widget.fileData.name : "${widget.fileData.name}.${widget.showExtension ? widget.fileData.extension : ""}",
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
