@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 class SplitViewWidget extends StatefulWidget {
@@ -28,7 +26,7 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
 
   late List<bool> dragging;
 
-  late double maxSize;
+  double maxSize = 0.0;
 
   double totalDelta = 0.0;
 
@@ -41,7 +39,14 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
   }
 
   List<Widget> _createListContent(BoxConstraints constraints) {
-    maxSize = constraints.maxWidth - dividerSize * (widget.widgets.length - 1);
+    if (maxSize != constraints.maxWidth - dividerSize * (widget.widgets.length - 1)) {
+      maxSize = constraints.maxWidth - dividerSize * (widget.widgets.length - 1);
+
+      sizes[0] ??= 220;
+      sizes[1] = maxSize - sizes[0]! - 5;
+
+      widget.sizesChanged?.call(sizes.map((e) => e!).toList());
+    }
 
     List<Widget> newWidgets = [];
 
@@ -49,7 +54,7 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
       sizes[i] ??= 220;
       // maxSize / widget.widgets.length;
 
-      if (sizes[i] != 0) {
+      if (sizes[i]! > 0.0) {
         newWidgets.add(
           SizedBox(
             width: sizes[i]!,
@@ -152,8 +157,10 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
+        return ListView(
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          // mainAxisSize: MainAxisSize.min,
           children: _createListContent(constraints),
         );
       },

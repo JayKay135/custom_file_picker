@@ -74,6 +74,14 @@ class _TestWidgetState extends State<TestWidget> {
 
   final FileData suggestedFile = FileData.createFile("newFile", "txt", DateTime.now());
 
+  FileData removeChildrensChildren(FileData fileData) {
+    for (FileData subFile in fileData.children) {
+      subFile.children = [];
+    }
+
+    return fileData;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -95,24 +103,39 @@ class _TestWidgetState extends State<TestWidget> {
                 print("selected: $path");
               });
             },
-            child: const Text("Save as"),
+            child: const Text("Save As"),
           ),
           const Divider(height: 20, thickness: 3),
           ElevatedButton(
             onPressed: () {
-              FileData fileData = file.copy()..children = [];
-              FilePicker.openAsync(file, ["xml", "png"], (String path) async {
-                print("returning files for: $path");
-                return FileData.createFolder("TEST", DateTime.now(), [
-                  FileData.createFileFromFileName("idk.xml", DateTime.now()),
-                  FileData.createFileFromFileName("something.png", DateTime.now()),
-                  FileData.createFileFromFileName("test.txt", DateTime.now()),
-                ]);
+              FilePicker.openAsync(removeChildrensChildren(file.copy()), ["xml", "png"], (String path) async {
+                // print("returning files for: $path");
+
+                await Future.delayed(const Duration(seconds: 2));
+
+                FileData? subData = file.getFileFromPath(path);
+                return removeChildrensChildren(subData!.copy());
               }, (String path) {
                 print("selected: $path");
               });
             },
             child: const Text("Open File Async"),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              FilePicker.saveAsAsync(removeChildrensChildren(file.copy()), suggestedFile, (String path) async {
+                // print("returning files for: $path");
+
+                await Future.delayed(const Duration(seconds: 2));
+
+                FileData? subData = file.getFileFromPath(path);
+                return removeChildrensChildren(subData!.copy());
+              }, (String path) {
+                print("selected: $path");
+              });
+            },
+            child: const Text("Save As Async"),
           ),
         ],
       ),

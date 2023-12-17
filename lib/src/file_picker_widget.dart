@@ -4,6 +4,7 @@ import 'package:custom_file_picker/src/custom_button.dart';
 import 'package:custom_file_picker/src/split_view_widget.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../custom_file_picker.dart';
 import 'file_widget.dart';
@@ -41,6 +42,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
   late bool _deselectAll;
 
   late TextEditingController _textEditingController;
+
+  late bool _waitingForData;
 
   Widget _createHeader(FileData file) {
     List<Widget> content = [];
@@ -92,77 +95,109 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
   Widget _createContent(FileData file) {
     return Padding(
       padding: const EdgeInsets.all(10),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomButton(
-                interactable: file.parent != null,
-                onTab: () {
-                  setState(() {
-                    if (_openedFile.parent != null) {
-                      _openedFile = _openedFile.parent!;
-                    }
-                  });
-                },
-                iconPath: "packages/custom_file_picker/assets/images/arrow.png",
+              Row(
+                children: [
+                  CustomButton(
+                    interactable: file.parent != null,
+                    onTab: () {
+                      setState(() {
+                        if (_openedFile.parent != null) {
+                          _openedFile = _openedFile.parent!;
+                        }
+                      });
+                    },
+                    iconPath: "packages/custom_file_picker/assets/images/arrow.png",
+                  ),
+                  _createHeader(_openedFile),
+                ],
               ),
-              _createHeader(_openedFile),
-            ],
-          ),
-          SizedBox(
-            height: 30,
-            child: SplitViewWidget(
-              sizesChanged: (List<double> sizes) {
-                setState(() {
-                  this.sizes = sizes;
-                });
-              },
-              widgets: [
-                Container(
-                  padding: const EdgeInsets.only(left: 5),
-                  width: double.infinity,
-                  child: const Text("Name", overflow: TextOverflow.ellipsis),
+              SizedBox(
+                height: 30,
+                child: SplitViewWidget(
+                  sizesChanged: (List<double> sizes) {
+                    WidgetsBinding.instance.addPostFrameCallback(
+                      (_) => setState(() {
+                        this.sizes = sizes;
+                      }),
+                    );
+                  },
+                  widgets: [
+                    Container(
+                      padding: const EdgeInsets.only(left: 5),
+                      width: double.infinity,
+                      child: const Text("Name", overflow: TextOverflow.ellipsis),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.only(left: 5),
+                      width: double.infinity,
+                      child: const Text("Date modified", overflow: TextOverflow.ellipsis),
+                    ),
+                    // Container(
+                    //   padding: const EdgeInsets.only(left: 5),
+                    //   width: double.infinity,
+                    //   child: const Text("Type", overflow: TextOverflow.ellipsis),
+                    // ),
+                  ],
                 ),
-                Container(
-                  padding: const EdgeInsets.only(left: 5),
-                  width: double.infinity,
-                  child: const Text("Date modified", overflow: TextOverflow.ellipsis),
-                ),
-                // Container(
-                //   padding: const EdgeInsets.only(left: 5),
-                //   width: double.infinity,
-                //   child: const Text("Type", overflow: TextOverflow.ellipsis),
-                // ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: file.children.length,
-            itemBuilder: (BuildContext context, int index) {
-              return FileWidget(
-                fileData: file.children[index],
-                sizes: sizes,
-                deselect: _deselectAll,
-                onDoubleTab: () async {
-                  if (file.children[index].isFolder) {
-                    if (widget.async) {
-                      var json = await DesktopMultiWindow.invokeMethod(
-                        0,
-                        "getFileData",
-                        file.children[index].getPath(),
-                        // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
-                      );
+              ),
+              const SizedBox(height: 10),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: file.children.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return FileWidget(
+                    fileData: file.children[index],
+                    sizes: sizes, // ?? List.generate(3, (index) => context.size!.width / 3),
+                    deselect: _deselectAll,
+                    onDoubleTab: () async {
+                      if (file.children[index].isFolder) {
+                        if (widget.async) {
+                          setState(() {
+                            _waitingForData = true;
+                          });
 
-                      _openedFile = FileData.fromJson(jsonDecode(json));
-                    } else {
-                      _openedFile = file.children[index];
-                    }
+                          var json = await DesktopMultiWindow.invokeMethod(
+                            0,
+                            "getFileData",
+                            file.children[index].getPath(),
+                            // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
+                          );
 
+                          FileData fileData = FileData.fromJson(jsonDecode(json));
+                          for (FileData child in fileData.children) {
+                            child.parent = fileData;
+                          }
+
+                          file.children[index] = fileData;
+                          fileData.parent = file;
+                        }
+
+                        setState(() {
+                          _openedFile = file.children[index];
+
+                          _waitingForData = false;
+                          _deselectAll = true;
+                        });
+
+                        await Future.delayed(const Duration(milliseconds: 100));
+
+                        setState(() {
+                          _deselectAll = false;
+                        });
+                      }
+                    },
+                  );
+                },
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
                     setState(() {
                       _deselectAll = true;
                     });
@@ -172,94 +207,89 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                     setState(() {
                       _deselectAll = false;
                     });
-                  }
-                },
-              );
-            },
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () async {
-                setState(() {
-                  _deselectAll = true;
-                });
-
-                await Future.delayed(const Duration(milliseconds: 100));
-
-                setState(() {
-                  _deselectAll = false;
-                });
-              },
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              widget.saveAs
-                  ? Expanded(
-                      child: TextField(
-                        controller: _textEditingController,
-                        decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-                      ),
-                    )
-                  : const SizedBox(),
-              widget.saveAs
-                  ? Container(
-                      padding: EdgeInsets.all(7),
-                      margin: EdgeInsets.only(left: 5),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(".${widget.suggestedFile!.extension}"),
-                    )
-                  : const SizedBox(),
-              widget.saveAs ? const SizedBox(width: 10) : const SizedBox(),
-              ElevatedButton(
-                  onPressed: () async {
-                    if (!widget.saveAs && FilePickerWidget.selectedFile != null) {
-                      // remove children data to decrease String size
-                      FilePickerWidget.selectedFile!.children = [];
-
-                      await DesktopMultiWindow.invokeMethod(
-                        0,
-                        "open",
-                        "${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}",
-                        // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
-                      );
-
-                      widget.windowController.close();
-                    } else if (widget.saveAs) {
-                      // int dotIndex = _textEditingController.text.lastIndexOf('.');
-
-                      // String name = dotIndex == -1 ? _textEditingController.text : _textEditingController.text.substring(0, dotIndex);
-                      // String extension = dotIndex == -1 ? '' : _textEditingController.text.substring(dotIndex + 1);
-
-                      // widget.suggestedFile!.name = name;
-                      // widget.suggestedFile!.extension = extension;
-                      widget.suggestedFile!.parent = _openedFile;
-
-                      await DesktopMultiWindow.invokeMethod(
-                        0,
-                        "saveAs",
-                        "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
-                        // jsonEncode(widget.suggestedFile!.toJson()),
-                      );
-
-                      widget.windowController.close();
-                    }
                   },
-                  child: Text(widget.saveAs ? "Save As" : "Open")),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                  onPressed: () {
-                    widget.windowController.close();
-                  },
-                  child: const Text("Cancel")),
-              const SizedBox(width: 10),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  widget.saveAs
+                      ? Expanded(
+                          child: TextField(
+                            controller: _textEditingController,
+                            decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                          ),
+                        )
+                      : const SizedBox(),
+                  widget.saveAs
+                      ? Container(
+                          padding: const EdgeInsets.all(7),
+                          margin: const EdgeInsets.only(left: 5),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(".${widget.suggestedFile!.extension}"),
+                        )
+                      : const SizedBox(),
+                  widget.saveAs ? const SizedBox(width: 10) : const SizedBox(),
+                  ElevatedButton(
+                      onPressed: () async {
+                        if (!widget.saveAs && FilePickerWidget.selectedFile != null) {
+                          // remove children data to decrease String size
+                          FilePickerWidget.selectedFile!.children = [];
+
+                          await DesktopMultiWindow.invokeMethod(
+                            0,
+                            "open",
+                            "${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}",
+                            // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
+                          );
+
+                          widget.windowController.close();
+                        } else if (widget.saveAs) {
+                          // int dotIndex = _textEditingController.text.lastIndexOf('.');
+
+                          // String name = dotIndex == -1 ? _textEditingController.text : _textEditingController.text.substring(0, dotIndex);
+                          // String extension = dotIndex == -1 ? '' : _textEditingController.text.substring(dotIndex + 1);
+
+                          // widget.suggestedFile!.name = name;
+                          // widget.suggestedFile!.extension = extension;
+                          widget.suggestedFile!.parent = _openedFile;
+
+                          await DesktopMultiWindow.invokeMethod(
+                            0,
+                            "saveAs",
+                            "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
+                            // jsonEncode(widget.suggestedFile!.toJson()),
+                          );
+
+                          widget.windowController.close();
+                        }
+                      },
+                      child: Text(widget.saveAs ? "Save As" : "Open")),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                      onPressed: () {
+                        widget.windowController.close();
+                      },
+                      child: const Text("Cancel")),
+                  const SizedBox(width: 10),
+                ],
+              ),
             ],
           ),
+          _waitingForData
+              ? Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : const SizedBox(),
         ],
       ),
     );
@@ -272,6 +302,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
     _deselectAll = false;
 
     _textEditingController = TextEditingController(text: widget.saveAs ? widget.suggestedFile!.name : "");
+
+    _waitingForData = false;
 
     super.initState();
   }
