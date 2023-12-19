@@ -84,7 +84,9 @@ class FileData {
         extension = json['extension'],
         lastChanged = DateTime.fromMillisecondsSinceEpoch(json['lastChanged'] as int),
         isFolder = json['isFolder'],
-        children = (jsonDecode(json['children']) as List<dynamic>).map((childJson) => FileData.fromJson(childJson as Map<String, dynamic>)).toList();
+        children = json.containsKey('children')
+            ? (jsonDecode(json['children']) as List<dynamic>).map((childJson) => FileData.fromJson(childJson as Map<String, dynamic>)).toList()
+            : [];
 
   Map<String, dynamic> toJson() => {
         'name': name,
