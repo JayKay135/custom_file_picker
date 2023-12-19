@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 class FileData {
   String name;
   String extension;
-  DateTime lastChanged;
+  DateTime lastModified;
 
   List<FileData> children;
 
@@ -15,17 +15,17 @@ class FileData {
   FileData(
     this.name,
     this.extension,
-    this.lastChanged,
+    this.lastModified,
     this.isFolder,
     this.children,
   );
 
   FileData copy() {
-    return FileData(name, extension, lastChanged.copyWith(), isFolder, children.map((e) => e.copy()).toList());
+    return FileData(name, extension, lastModified.copyWith(), isFolder, children.map((e) => e.copy()).toList());
   }
 
-  static FileData createFolder(String name, DateTime lastChanged, List<FileData> children) {
-    FileData fileData = FileData(name, "", lastChanged, true, children);
+  static FileData createFolder(String name, DateTime lastModified, List<FileData> children) {
+    FileData fileData = FileData(name, "", lastModified, true, children);
 
     // set parent reference for children
     for (FileData file in children) {
@@ -37,20 +37,20 @@ class FileData {
     return fileData;
   }
 
-  FileData.createFile(this.name, this.extension, this.lastChanged)
+  FileData.createFile(this.name, this.extension, this.lastModified)
       : children = [],
         isFolder = false;
 
   static FileData createFileFromFileName(
     String fileName,
-    DateTime lastChanged,
+    DateTime lastModified,
   ) {
     int dotIndex = fileName.lastIndexOf('.');
 
     String name = dotIndex == -1 ? fileName : fileName.substring(0, dotIndex);
     String extension = dotIndex == -1 ? '' : fileName.substring(dotIndex + 1);
 
-    return FileData(name, extension, lastChanged, false, []);
+    return FileData(name, extension, lastModified, false, []);
   }
 
   String getPath() {
@@ -82,7 +82,7 @@ class FileData {
   FileData.fromJson(Map<String, dynamic> json)
       : name = json['name'],
         extension = json['extension'],
-        lastChanged = DateTime.fromMillisecondsSinceEpoch(json['lastChanged'] as int),
+        lastModified = DateTime.parse(json['lastModified'] as String),
         isFolder = json['isFolder'],
         children = json.containsKey('children')
             ? (jsonDecode(json['children']) as List<dynamic>).map((childJson) => FileData.fromJson(childJson as Map<String, dynamic>)).toList()
@@ -91,7 +91,7 @@ class FileData {
   Map<String, dynamic> toJson() => {
         'name': name,
         'extension': extension,
-        'lastChanged': lastChanged.millisecondsSinceEpoch,
+        'lastModified': lastModified.millisecondsSinceEpoch,
         'isFolder': isFolder,
         'children': jsonEncode(children),
       };

@@ -175,7 +175,7 @@ class _FileWidgetState extends State<FileWidget> {
                   ? SizedBox(
                       width: widget.sizes != null ? widget.sizes![1] - 2 : 200,
                       child: Text(
-                        DateFormat("dd.MM.yyyy HH:mm").format(widget.fileData.lastChanged),
+                        DateFormat("dd.MM.yyyy HH:mm").format(widget.fileData.lastModified),
                         overflow: TextOverflow.ellipsis,
                       ),
                     )
