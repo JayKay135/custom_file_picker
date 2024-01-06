@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/gestures.dart';
 
+/// Custom [TapGestureRecognizer] that allows for immediate triggers of singleTap events even in the case of actual double taps
 class ImmediateMultiTapGestureRecognizer extends TapGestureRecognizer {
   VoidCallback? onSingleTap;
   VoidCallback? onDoubleTap;
@@ -21,8 +22,6 @@ class ImmediateMultiTapGestureRecognizer extends TapGestureRecognizer {
 
   @override
   void handleTapDown({required PointerDownEvent down}) {
-    // print("handling tap");
-
     onSingleTap?.call();
 
     // Start the timer

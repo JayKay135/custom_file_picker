@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// A custom styled button widget.
 class CustomButton extends StatefulWidget {
   const CustomButton({
     super.key,
