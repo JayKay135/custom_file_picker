@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 
-import '../custom_file_picker.dart';
 import 'file_picker_widget.dart';
+import '../custom_file_picker.dart';
 
+/// A class that provides file picking functionality.
 class FilePicker {
   final Widget mainApp;
   final List<String> args;
@@ -62,6 +63,7 @@ class FilePicker {
     }
   }
 
+  /// Sets the parent references for the given [fileData].
   static void _setParentReferences(FileData fileData) {
     for (FileData child in fileData.children) {
       child.parent = fileData;
@@ -71,13 +73,13 @@ class FilePicker {
     }
   }
 
-  /// Recursively removes all files that are not folders
-  static void _removeFiles(FileData fileData) {
-    fileData.children.removeWhere((element) => !element.isFolder);
+  /// Recursively removes all files that are not folders except files with extensionss that are listed in the [extensionExceptions]
+  static void _removeFiles(FileData fileData, List<String> extensionExceptions) {
+    fileData.children.removeWhere((element) => !element.isFolder && !extensionExceptions.contains(element.extension));
 
     // continue search
     for (FileData child in fileData.children) {
-      _removeFiles(child);
+      _removeFiles(child, extensionExceptions);
     }
   }
 
@@ -128,12 +130,9 @@ class FilePicker {
     DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
       switch (call.method) {
         case "open":
-          // Map<String, dynamic> data = jsonDecode(call.arguments);
-          // onSelectedFile(FileData.fromJson(data));
           onSelectedFile(call.arguments);
       }
 
-      // debugPrint('${call.method} ${call.arguments} $fromWindowId');
       return "";
     });
   }
@@ -188,13 +187,10 @@ class FilePicker {
           return jsonEncode(newFileData);
 
         case "open":
-          // Map<String, dynamic> data = jsonDecode(call.arguments);
-          // onSelectedFile(FileData.fromJson(data));
           onSelectedFile(call.arguments);
           break;
       }
 
-      // debugPrint('${call.method} ${call.arguments} $fromWindowId');
       return "";
     });
   }
@@ -211,14 +207,20 @@ class FilePicker {
   ///   // Handle the selected file path
   /// });
   /// ```
-  static Future<void> saveAs(FileData fileHistory, FileData suggestedFile, Function(String) onSelectedFile) async {
+  static Future<void> saveAs(
+    FileData fileHistory,
+    FileData suggestedFile,
+    Function(String) onSelectedFile, {
+    bool showExtension = true,
+  }) async {
     FileData files = fileHistory.copy();
-    _removeFiles(files);
+    _removeFiles(files, [suggestedFile.extension!]);
 
     final window = await DesktopMultiWindow.createWindow(jsonEncode({
       'file': files,
       'saveAs': true,
       'suggestedFile': suggestedFile,
+      'showExtension': showExtension,
     }));
     window
       ..setFrame(const Offset(0, 0) & const Size(800, 450))
@@ -229,12 +231,9 @@ class FilePicker {
     DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
       switch (call.method) {
         case "saveAs":
-          // Map<String, dynamic> data = jsonDecode(call.arguments);
-          // onSelectedFile(FileData.fromJson(data));
           onSelectedFile(call.arguments);
       }
 
-      // debugPrint('${call.method} ${call.arguments} $fromWindowId');
       return "";
     });
   }
@@ -261,15 +260,17 @@ class FilePicker {
     FileData fileHistory,
     FileData suggestedFile,
     Future<FileData> Function(String) getFileData,
-    Function(String) onSelectedFile,
-  ) async {
+    Function(String) onSelectedFile, {
+    bool showExtension = true,
+  }) async {
     FileData files = fileHistory.copy();
-    _removeFiles(files);
+    _removeFiles(files, [suggestedFile.extension!]);
 
     final window = await DesktopMultiWindow.createWindow(jsonEncode({
       'file': files,
       'saveAs': true,
       'suggestedFile': suggestedFile,
+      'showExtension': showExtension,
       'async': true,
     }));
     window
@@ -282,17 +283,14 @@ class FilePicker {
       switch (call.method) {
         case "getFileData":
           FileData newFileData = (await getFileData(call.arguments)).copy();
-          _removeFiles(newFileData);
+          _removeFiles(newFileData, [suggestedFile.extension!]);
           return jsonEncode(newFileData);
 
         case "saveAs":
-          // Map<String, dynamic> data = jsonDecode(call.arguments);
-          // onSelectedFile(FileData.fromJson(data));
           onSelectedFile(call.arguments);
           break;
       }
 
-      // debugPrint('${call.method} ${call.arguments} $fromWindowId');
       return "";
     });
   }

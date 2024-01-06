@@ -1,9 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
-import '../custom_file_picker.dart';
 import 'file_picker_widget.dart';
 import 'immediate_multi_tap_gesture_recognizer.dart';
+import '../custom_file_picker.dart';
 
 // ignore: must_be_immutable
 class FileWidget extends StatefulWidget {
@@ -167,7 +167,7 @@ class _FileWidgetState extends State<FileWidget> {
               SizedBox(
                 width: widget.sizes != null ? widget.sizes![0] - 20 : 200,
                 child: Text(
-                  widget.fileData.isFolder ? widget.fileData.name : "${widget.fileData.name}.${widget.showExtension ? widget.fileData.extension : ""}",
+                  widget.fileData.isFolder ? widget.fileData.name : "${widget.fileData.name}${widget.showExtension ? ".${widget.fileData.extension}" : ""}",
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

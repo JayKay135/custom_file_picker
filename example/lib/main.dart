@@ -109,7 +109,7 @@ class _TestWidgetState extends State<TestWidget> {
           ElevatedButton(
             onPressed: () {
               FilePicker.openAsync(removeChildrensChildren(file.copy()), ["xml", "png"], (String path) async {
-                // print("returning files for: $path");
+                print("returning files for: $path");
 
                 await Future.delayed(const Duration(seconds: 2));
 
