@@ -7,12 +7,9 @@ import '../custom_file_picker.dart';
 
 /// A class that provides file picking functionality.
 class FilePicker {
-  final Widget mainApp;
-  final List<String> args;
-
   FilePicker(
-    this.args,
-    this.mainApp, {
+    List<String> args,
+    Widget mainApp, {
     ThemeData? theme,
     ThemeData? darkTheme,
   }) {
@@ -30,13 +27,10 @@ class FilePicker {
       if (saveAs) {
         suggestedFile = FileData.fromJson(data["suggestedFile"]);
       } else {
-        extensions = (data["extensions"] as List<dynamic>)
-            .map((e) => e as String)
-            .toList();
+        extensions = (data["extensions"] as List<dynamic>).map((e) => e as String).toList();
       }
 
-      bool showExtension =
-          data.containsKey("showExtension") && data["showExtension"];
+      bool showExtension = data.containsKey("showExtension") && data["showExtension"];
       bool async = data.containsKey("async") && data["async"];
 
       // set parent references
@@ -77,10 +71,8 @@ class FilePicker {
   }
 
   /// Recursively removes all files that are not folders except files with extensionss that are listed in the [extensionExceptions]
-  static void _removeFiles(
-      FileData fileData, List<String> extensionExceptions) {
-    fileData.children.removeWhere((element) =>
-        !element.isFolder && !extensionExceptions.contains(element.extension));
+  static void _removeFiles(FileData fileData, List<String> extensionExceptions) {
+    fileData.children.removeWhere((element) => !element.isFolder && !extensionExceptions.contains(element.extension));
 
     // continue search
     for (FileData child in fileData.children) {
@@ -90,8 +82,7 @@ class FilePicker {
 
   /// Recursively removes all files that don't have one of the allowed extensions
   static void _keepOnlyExtension(FileData fileData, List<String> extension) {
-    fileData.children.removeWhere((element) =>
-        !element.isFolder && !extension.contains(element.extension));
+    fileData.children.removeWhere((element) => !element.isFolder && !extension.contains(element.extension));
 
     // continue search
     for (FileData child in fileData.children) {

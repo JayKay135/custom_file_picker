@@ -1,3 +1,8 @@
+# Custom File Picker
+[![pub package](https://img.shields.io/pub/v/custom_file_picker.svg)](https://pub.dev/packages/custom_file_picker)
+[![pub points](https://img.shields.io/pub/points/custom_file_picker.svg)](https://pub.dev/packages/custom_file_picker)
+[![package publisher](https://img.shields.io/pub/publisher/custom_file_picker.svg)](https://pub.dev/packages/custom_file_picker/publisher)
+
 ## Features
 This package adds a file opener hierarchy system that is device-independent.
 So it does not reflect the file system of the running device but can show other custom-specified file hierarchies.
