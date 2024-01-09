@@ -80,13 +80,17 @@ class FileData {
   FileData? getFileFromPath(String path) {
     List<String> hierarchy = path.split('/');
 
+    if (hierarchy.length == 1 && hierarchy.first == name) {
+      return this;
+    }
+
     FileData? current = this;
     int index = 0;
 
     while (current!.name == hierarchy[index]) {
       index++;
-
       current = current.children.firstWhereOrNull((element) => element.name == hierarchy[index]);
+
       if (index == hierarchy.length - 1) {
         return current;
       }

@@ -1,10 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:flutter/widgets.dart';
 
 import 'custom_button.dart';
 import 'file_widget.dart';
@@ -76,31 +74,43 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
   Widget _createHeader(FileData file) {
     List<Widget> content = [];
 
-    // List<String> elements = file.getPath().split('/');
     FileData? fileData = file;
-
-    // for (int i = 0; i < elements.length; i++) {
-    //   content.add(Padding(
-    //     padding: EdgeInsets.all(10),
-    //     child: Text(elements[i]),
-    //   ));
-
-    //   if (i < elements.length - 1) {
-    //     content.add(Padding(
-    //       padding: EdgeInsets.all(00),
-    //       child: Icon(Icons.keyboard_arrow_right, size: 15),
-    //     ));
-    //   }
-    // }
 
     while (fileData != null) {
       FileData? currentFileData = fileData;
 
       content.add(GestureDetector(
-          onTap: () {
-            setState(() {
-              _openedFile = currentFileData;
-            });
+          onTap: () async {
+            if (!widget.async) {
+              setState(() {
+                _openedFile = currentFileData;
+              });
+            } else {
+              setState(() {
+                _waitingForData = true;
+              });
+              var json = await DesktopMultiWindow.invokeMethod(
+                0,
+                "getFileData",
+                currentFileData.getPath(),
+              );
+
+              FileData fileData = FileData.fromJson(jsonDecode(json));
+              for (FileData child in fileData.children) {
+                child.parent = fileData;
+              }
+
+              setState(() {
+                _waitingForData = false;
+                _openedFile = fileData;
+              });
+
+              await Future.delayed(const Duration(milliseconds: 100));
+
+              setState(() {
+                _deselectAll = false;
+              });
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(10),

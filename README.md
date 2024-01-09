@@ -1,13 +1,12 @@
-The file opener hierarchy system allows custom file hierarchies that must not match the running device file system.
-
 ## Features
-Opens the file picker dialog in a separate window.
+This package adds a file opener hierarchy system that is device-independent.
+So it does not reflect the file system of the running device but can show other custom-specified file hierarchies.
 
 ## Usage
 ### Create a custom FileData hierarchy
 
 ```dart
-final FileData file = FileData.createFolder(
+final FileData fileHistory = FileData.createFolder(
     "data",
     DateTime.now(),
     [
@@ -26,9 +25,45 @@ final FileData file = FileData.createFolder(
   );
 ```
 
-### Open the file picker dialog
+### File Selection
 ```dart
-FilePicker.openSecondaryWindow(file, (FileData fileData) {
-    print("selected: ${fileData.getPath()}");
+FilePicker.open(fileHistory, ['txt', 'pdf'], (String filePath) {
+  // Handle the selected file path
+});
+```
+
+### File Saving
+```dart
+FileData suggestedFile = FileData.createFile("newFile", "txt", DateTime.now());
+
+FilePicker.saveAs(fileHistory, suggestedFile, (String path) {
+  // Handle the selected file path
+});
+```
+
+## Async Variants
+There are also async variants of the `open` and `saveAs` functions, in case the whole file history should not be provided right from the start. 
+Whenever the user changes the current file hierarchy level (opens a folder or goes back to the parent) the `onSelectedFile` function is called where the new file structure for the required hierarchy level can be provided.
+
+
+### Async File Selection
+```dart
+FilePicker.open(fileHistory, ['txt', 'pdf'], (String path) async {
+  // Return the FileData for the requested hierarchy path
+  return FileData ...
+}, (String filePath) {
+  // Handle the selected file path
+});
+```
+
+### Async File Saving
+```dart
+FileData suggestedFile = FileData.createFile("newFile", "txt", DateTime.now());
+
+FilePicker.saveAs(fileHistory, suggestedFile, (String path) async {
+  // Return the FileData for the requested hierarchy path
+  return FileData ...
+}, (String path) {
+  // Handle the selected file path
 });
 ```

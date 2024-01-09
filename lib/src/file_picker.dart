@@ -103,7 +103,7 @@ class FilePicker {
   /// Example usage:
   /// ```dart
   /// FilePicker.open(fileHistory, ['txt', 'pdf'], (String filePath) {
-  ///   print('Selected file: $filePath');
+  ///   // Handle the selected file path
   /// });
   /// ```
   static Future<void> open(
@@ -153,7 +153,7 @@ class FilePicker {
   ///   print("returning files for: $path");
   ///   return FileData ...
   /// }, (String filePath) {
-  ///   print('Selected file: $filePath');
+  ///   // Handle the selected file path
   /// });
   /// ```
   static Future<void> openAsync(
