@@ -58,7 +58,7 @@ class _FileWidgetState extends State<FileWidget> {
 
   String getImagePath(FileData fileData) {
     if (fileData.isFolder) {
-      return 'packages/custom_file_picker/assets/images/folder_icon2.png';
+      return 'packages/custom_file_picker/assets/images/folder_icon.png';
     }
 
     switch (fileData.extension) {
@@ -89,7 +89,9 @@ class _FileWidgetState extends State<FileWidget> {
       key: widget._globalKey,
       behavior: HitTestBehavior.opaque,
       gestures: {
-        ImmediateMultiTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<ImmediateMultiTapGestureRecognizer>(
+        ImmediateMultiTapGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<
+                ImmediateMultiTapGestureRecognizer>(
           () => ImmediateMultiTapGestureRecognizer(
             numberOfTaps: 2,
             tapTimeout: const Duration(milliseconds: 300),
@@ -101,11 +103,15 @@ class _FileWidgetState extends State<FileWidget> {
                   selected = !selected;
 
                   if (selected && !widget.fileData.isFolder) {
-                    _FileWidgetState? lastFileWidget = FileWidget.lastSelectedFile;
+                    _FileWidgetState? lastFileWidget =
+                        FileWidget.lastSelectedFile;
                     FileWidget.lastSelectedFile = this;
                     lastFileWidget?.setState(() {});
 
-                    FilePickerWidget.selectedFile = FilePickerWidget.selectedFile == widget.fileData ? null : widget.fileData;
+                    FilePickerWidget.selectedFile =
+                        FilePickerWidget.selectedFile == widget.fileData
+                            ? null
+                            : widget.fileData;
                   }
                 });
               }
@@ -157,7 +163,10 @@ class _FileWidgetState extends State<FileWidget> {
                       ? Theme.of(context).colorScheme.surfaceVariant
                       : Colors.transparent,
               borderRadius: const BorderRadius.all(Radius.circular(2)),
-              border: Border.all(color: selected && FileWidget.lastSelectedFile == this ? Theme.of(context).colorScheme.primary : Colors.transparent)),
+              border: Border.all(
+                  color: selected && FileWidget.lastSelectedFile == this
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent)),
           child: ListView(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
@@ -167,7 +176,9 @@ class _FileWidgetState extends State<FileWidget> {
               SizedBox(
                 width: widget.sizes != null ? widget.sizes![0] - 20 : 200,
                 child: Text(
-                  widget.fileData.isFolder ? widget.fileData.name : "${widget.fileData.name}${widget.showExtension ? ".${widget.fileData.extension}" : ""}",
+                  widget.fileData.isFolder
+                      ? widget.fileData.name
+                      : "${widget.fileData.name}${widget.showExtension ? ".${widget.fileData.extension}" : ""}",
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -175,7 +186,8 @@ class _FileWidgetState extends State<FileWidget> {
                   ? SizedBox(
                       width: widget.sizes != null ? widget.sizes![1] - 2 : 200,
                       child: Text(
-                        DateFormat("dd.MM.yyyy HH:mm").format(widget.fileData.lastModified),
+                        DateFormat("dd.MM.yyyy HH:mm")
+                            .format(widget.fileData.lastModified),
                         overflow: TextOverflow.ellipsis,
                       ),
                     )

@@ -127,7 +127,9 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
       fileData = fileData.parent;
     }
 
-    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: content.reversed.toList());
+    return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: content.reversed.toList());
   }
 
   /// Creates the content widget for the given [file].
@@ -151,7 +153,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                         }
                       });
                     },
-                    iconPath: "packages/custom_file_picker/assets/images/arrow.png",
+                    iconPath:
+                        "packages/custom_file_picker/assets/images/arrow.png",
                   ),
                   _createHeader(_openedFile),
                 ],
@@ -170,12 +173,14 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                     Container(
                       padding: const EdgeInsets.only(left: 5),
                       width: double.infinity,
-                      child: const Text("Name", overflow: TextOverflow.ellipsis),
+                      child:
+                          const Text("Name", overflow: TextOverflow.ellipsis),
                     ),
                     Container(
                       padding: const EdgeInsets.only(left: 5),
                       width: double.infinity,
-                      child: const Text("Date modified", overflow: TextOverflow.ellipsis),
+                      child: const Text("Date modified",
+                          overflow: TextOverflow.ellipsis),
                     ),
                     // Container(
                     //   padding: const EdgeInsets.only(left: 5),
@@ -193,7 +198,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                 itemBuilder: (BuildContext context, int index) {
                   return FileWidget(
                     fileData: file.children[index],
-                    sizes: sizes, // ?? List.generate(3, (index) => context.size!.width / 3),
+                    sizes:
+                        sizes, // ?? List.generate(3, (index) => context.size!.width / 3),
                     deselect: _deselectAll,
                     showExtension: widget.showExtension,
                     onDoubleTab: () async {
@@ -210,7 +216,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                             // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
                           );
 
-                          FileData fileData = FileData.fromJson(jsonDecode(json));
+                          FileData fileData =
+                              FileData.fromJson(jsonDecode(json));
                           for (FileData child in fileData.children) {
                             child.parent = fileData;
                           }
@@ -260,7 +267,9 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                       ? Expanded(
                           child: TextField(
                             controller: _textEditingController,
-                            decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10))),
                           ),
                         )
                       : const SizedBox(),
@@ -269,7 +278,9 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                           padding: const EdgeInsets.all(7),
                           margin: const EdgeInsets.only(left: 5),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.secondaryContainer,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondaryContainer,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(".${widget.suggestedFile!.extension}"),
@@ -278,7 +289,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                   widget.saveAs ? const SizedBox(width: 10) : const SizedBox(),
                   ElevatedButton(
                       onPressed: () async {
-                        if (!widget.saveAs && FilePickerWidget.selectedFile != null) {
+                        if (!widget.saveAs &&
+                            FilePickerWidget.selectedFile != null) {
                           // remove children data to decrease String size
                           FilePickerWidget.selectedFile!.children = [];
 
@@ -299,12 +311,16 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                           // widget.suggestedFile!.name = name;
                           // widget.suggestedFile!.extension = extension;
 
-                          widget.suggestedFile!.name = _textEditingController.text;
+                          widget.suggestedFile!.name =
+                              _textEditingController.text;
 
-                          if (file.children.firstWhereOrNull((element) => element.name == widget.suggestedFile!.name) != null) {
+                          if (file.children.firstWhereOrNull((element) =>
+                                  element.name == widget.suggestedFile!.name) !=
+                              null) {
                             // choosen name identical to already exisiting file
                             _showFileAlreadyExistsScreen(
-                                "${widget.suggestedFile!.name}${widget.suggestedFile!.isFolder ? "" : ".${widget.suggestedFile!.extension}"}", () async {
+                                "${widget.suggestedFile!.name}${widget.suggestedFile!.isFolder ? "" : ".${widget.suggestedFile!.extension}"}",
+                                () async {
                               widget.suggestedFile!.parent = _openedFile;
 
                               await DesktopMultiWindow.invokeMethod(
@@ -447,7 +463,10 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
               ? Container(
                   width: double.infinity,
                   height: double.infinity,
-                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withOpacity(0.2),
                   child: const Center(
                     child: CircularProgressIndicator(),
                   ),
@@ -469,7 +488,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
   ///   // Replace the existing file logic
   /// });
   /// ```
-  Future<void> _showFileAlreadyExistsScreen(String fileName, Function onReplace) async {
+  Future<void> _showFileAlreadyExistsScreen(
+      String fileName, Function onReplace) async {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -482,16 +502,22 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
             ),
             actions: <Widget>[
               TextButton(
-                  style: TextButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primaryContainer),
+                  style: TextButton.styleFrom(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                   child: Text(
                     "Cancel",
-                    style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
+                    style: TextStyle(
+                        color:
+                            Theme.of(context).colorScheme.onPrimaryContainer),
                   )),
               TextButton(
-                style: TextButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.errorContainer),
+                style: TextButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.errorContainer),
                 onPressed: () {
                   Navigator.of(context).pop();
 
@@ -499,7 +525,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                 },
                 child: Text(
                   "Replace",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer),
                 ),
               ),
             ],
@@ -513,7 +540,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
     _deselectAll = false;
 
-    _textEditingController = TextEditingController(text: widget.saveAs ? widget.suggestedFile!.name : "");
+    _textEditingController = TextEditingController(
+        text: widget.saveAs ? widget.suggestedFile!.name : "");
 
     _waitingForData = false;
 

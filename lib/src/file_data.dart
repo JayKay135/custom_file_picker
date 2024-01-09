@@ -34,11 +34,13 @@ class FileData {
 
   /// Creates a copy of the current [FileData] instance which removes all memory references to the old instance.
   FileData copy() {
-    return FileData(name, extension, lastModified.copyWith(), isFolder, children.map((e) => e.copy()).toList());
+    return FileData(name, extension, lastModified.copyWith(), isFolder,
+        children.map((e) => e.copy()).toList());
   }
 
   /// Creates a folder [FileData] object
-  static FileData createFolder(String name, DateTime lastModified, List<FileData> children) {
+  static FileData createFolder(
+      String name, DateTime lastModified, List<FileData> children) {
     FileData fileData = FileData(name, null, lastModified, true, children);
 
     // set parent reference for children
@@ -89,7 +91,8 @@ class FileData {
 
     while (current!.name == hierarchy[index]) {
       index++;
-      current = current.children.firstWhereOrNull((element) => element.name == hierarchy[index]);
+      current = current.children
+          .firstWhereOrNull((element) => element.name == hierarchy[index]);
 
       if (index == hierarchy.length - 1) {
         return current;
@@ -109,7 +112,10 @@ class FileData {
         lastModified = DateTime.parse(json['lastModified'] as String),
         isFolder = json['isFolder'],
         children = json.containsKey('children')
-            ? (jsonDecode(json['children']) as List<dynamic>).map((childJson) => FileData.fromJson(childJson as Map<String, dynamic>)).toList()
+            ? (jsonDecode(json['children']) as List<dynamic>)
+                .map((childJson) =>
+                    FileData.fromJson(childJson as Map<String, dynamic>))
+                .toList()
             : [];
 
   Map<String, dynamic> toJson() => {

@@ -40,7 +40,8 @@ class ImmediateMultiTapGestureRecognizer extends TapGestureRecognizer {
   }
 
   @override
-  void handleTapUp({required PointerDownEvent down, required PointerUpEvent up}) {
+  void handleTapUp(
+      {required PointerDownEvent down, required PointerUpEvent up}) {
     // Check if it's a double tap
     if (_tapCount == numberOfTaps) {
       // Handle double tap
@@ -62,7 +63,10 @@ class ImmediateMultiTapGestureRecognizer extends TapGestureRecognizer {
   }
 
   @override
-  void handleTapCancel({PointerCancelEvent? cancel, required PointerDownEvent down, String? reason}) {
+  void handleTapCancel(
+      {PointerCancelEvent? cancel,
+      required PointerDownEvent down,
+      String? reason}) {
     _tapCount = 0;
     _timer?.cancel();
 
