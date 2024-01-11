@@ -1,9 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
-import '../custom_file_picker.dart';
 import 'file_picker_widget.dart';
 import 'immediate_multi_tap_gesture_recognizer.dart';
+import '../custom_file_picker.dart';
 
 // ignore: must_be_immutable
 class FileWidget extends StatefulWidget {
@@ -30,10 +30,6 @@ class FileWidget extends StatefulWidget {
   // ignore: library_private_types_in_public_api
   static _FileWidgetState? lastSelectedFile;
 
-  // void deselect() {
-  //   _globalKey.currentState?.deselect();
-  // }
-
   @override
   State<FileWidget> createState() => _FileWidgetState();
 }
@@ -56,9 +52,10 @@ class _FileWidgetState extends State<FileWidget> {
     });
   }
 
+  /// Returns the image path for the given [fileData].
   String getImagePath(FileData fileData) {
     if (fileData.isFolder) {
-      return 'packages/custom_file_picker/assets/images/folder_icon2.png';
+      return 'packages/custom_file_picker/assets/images/folder_icon.png';
     }
 
     switch (fileData.extension) {
@@ -167,7 +164,7 @@ class _FileWidgetState extends State<FileWidget> {
               SizedBox(
                 width: widget.sizes != null ? widget.sizes![0] - 20 : 200,
                 child: Text(
-                  widget.fileData.isFolder ? widget.fileData.name : "${widget.fileData.name}.${widget.showExtension ? widget.fileData.extension : ""}",
+                  widget.fileData.isFolder ? widget.fileData.name : "${widget.fileData.name}${widget.showExtension ? ".${widget.fileData.extension}" : ""}",
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

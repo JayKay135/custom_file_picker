@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Creates a split view widget that allows for multiple widgets to be displayed in a row.
+/// And the size of each widet can be changed via vertical dividers and mouse dragging.
 class SplitViewWidget extends StatefulWidget {
   const SplitViewWidget({
     super.key,
@@ -15,7 +17,10 @@ class SplitViewWidget extends StatefulWidget {
 }
 
 class _SplitViewWidgetState extends State<SplitViewWidget> {
+  /// Width of the dragg divider
   final double dividerSize = 3;
+
+  /// Minimal width for a widget of the split view
   final double minWidth = 50;
 
   /// The sizes of the split view widgets before the dragging started
@@ -24,10 +29,13 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
   /// Used sizes for the split view widgets during dragging
   late List<double?> sizes;
 
+  /// Holds the state whether a divider is currently beeing dragged or not
   late List<bool> dragging;
 
+  /// The maximal available space for all widgets in the split view
   double maxSize = 0.0;
 
+  /// The total drag delta since drag start for the current dragg process
   double totalDelta = 0.0;
 
   @override
@@ -38,9 +46,12 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
     super.initState();
   }
 
+  /// Creates the list content based on the given [constraints].
   List<Widget> _createListContent(BoxConstraints constraints) {
-    if (maxSize != constraints.maxWidth - dividerSize * (widget.widgets.length - 1)) {
-      maxSize = constraints.maxWidth - dividerSize * (widget.widgets.length - 1);
+    if (maxSize !=
+        constraints.maxWidth - dividerSize * (widget.widgets.length - 1)) {
+      maxSize =
+          constraints.maxWidth - dividerSize * (widget.widgets.length - 1);
 
       sizes[0] ??= 220;
       sizes[1] = maxSize - sizes[0]! - 5;
@@ -74,7 +85,9 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
             children: [
               // this is the actual line that changes width
               Container(
-                color: dragging[i] ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outlineVariant,
+                color: dragging[i]
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outlineVariant,
                 width: dragging[i] ? dividerSize : 1,
                 height: double.infinity,
               ),
@@ -108,11 +121,14 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
                       //   sizes[i + 1] = newWidth2;
                       // }
 
-                      double newWidth1 = (startSizes[i] + totalDelta).clamp(minWidth, maxSize - minWidth);
-                      double newWidth2 = (startSizes[i + 1] - totalDelta).clamp(minWidth, maxSize - minWidth);
+                      double newWidth1 = (startSizes[i] + totalDelta)
+                          .clamp(minWidth, maxSize - minWidth);
+                      double newWidth2 = (startSizes[i + 1] - totalDelta)
+                          .clamp(minWidth, maxSize - minWidth);
 
                       // ensure total size doesn't exceed maxSize
-                      if (newWidth1 + newWidth2 <= startSizes[i] + startSizes[i + 1]) {
+                      if (newWidth1 + newWidth2 <=
+                          startSizes[i] + startSizes[i + 1]) {
                         // + 0.01
                         sizes[i] = newWidth1;
                         sizes[i + 1] = newWidth2;

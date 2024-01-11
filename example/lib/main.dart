@@ -72,7 +72,8 @@ class _TestWidgetState extends State<TestWidget> {
     ],
   );
 
-  final FileData suggestedFile = FileData.createFile("newFile", "txt", DateTime.now());
+  final FileData suggestedFile =
+      FileData.createFile("newFile", "txt", DateTime.now());
 
   FileData removeChildrensChildren(FileData fileData) {
     for (FileData subFile in fileData.children) {
@@ -108,8 +109,10 @@ class _TestWidgetState extends State<TestWidget> {
           const Divider(height: 20, thickness: 3),
           ElevatedButton(
             onPressed: () {
-              FilePicker.openAsync(removeChildrensChildren(file.copy()), ["xml", "png"], (String path) async {
-                // print("returning files for: $path");
+              FilePicker.openAsync(
+                  removeChildrensChildren(file.copy()), ["xml", "png"],
+                  (String path) async {
+                print("returning files for: $path");
 
                 await Future.delayed(const Duration(seconds: 2));
 
@@ -124,7 +127,9 @@ class _TestWidgetState extends State<TestWidget> {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              FilePicker.saveAsAsync(removeChildrensChildren(file.copy()), suggestedFile, (String path) async {
+              FilePicker.saveAsAsync(
+                  removeChildrensChildren(file.copy()), suggestedFile,
+                  (String path) async {
                 // print("returning files for: $path");
 
                 await Future.delayed(const Duration(seconds: 2));

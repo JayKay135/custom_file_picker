@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// A custom styled button widget.
 class CustomButton extends StatefulWidget {
   const CustomButton({
     super.key,
@@ -51,9 +52,15 @@ class _CustomButtonState extends State<CustomButton> {
           height: 25,
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(5)),
-            color: hovering && widget.interactable ? Theme.of(context).colorScheme.primary.withOpacity(0.05) : Colors.transparent,
+            color: hovering && widget.interactable
+                ? Theme.of(context).colorScheme.primary.withOpacity(0.05)
+                : Colors.transparent,
           ),
-          child: Image.asset(widget.iconPath, color: Theme.of(context).colorScheme.onSurface.withOpacity(widget.interactable ? 1 : 0.2)),
+          child: Image.asset(widget.iconPath,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withOpacity(widget.interactable ? 1 : 0.2)),
         ),
       ),
     );
