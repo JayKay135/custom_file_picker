@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:ui';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -139,7 +141,34 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
       fileData = fileData.parent;
     }
 
-    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: content.reversed.toList());
+    final ScrollController controller = ScrollController();
+
+    return MouseRegion(
+      child: Listener(
+        onPointerSignal: (PointerSignalEvent event) {
+          if (event is PointerScrollEvent) {
+            final newOffset = controller.offset + event.scrollDelta.dy;
+            controller.animateTo(
+              newOffset,
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.easeInOut,
+            );
+          }
+        },
+        child: SizedBox(
+          height: 40,
+          child: ListView.builder(
+            controller: controller,
+            scrollDirection: Axis.horizontal,
+            itemCount: content.length,
+            itemBuilder: (context, index) {
+              return content.reversed.toList()[index];
+            },
+          ),
+        ),
+      ),
+    );
+    // return Row(crossAxisAlignment: CrossAxisAlignment.center, children: content.reversed.toList());
   }
 
   /// Creates the content widget for the given [file].
@@ -170,6 +199,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomButton(
                       interactable: file.parent != null,
@@ -182,7 +212,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                       },
                       iconPath: "packages/custom_file_picker/assets/images/arrow.png",
                     ),
-                    _createHeader(_openedFile),
+                    Flexible(child: _createHeader(_openedFile)),
                   ],
                 ),
                 SizedBox(
