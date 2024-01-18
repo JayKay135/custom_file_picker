@@ -16,18 +16,21 @@ import '../custom_file_picker.dart';
 class FilePickerWidget extends StatefulWidget {
   FilePickerWidget({
     super.key,
-    required this.windowController,
+    this.windowController,
     required this.file,
     this.saveAs = false,
     this.suggestedFile,
     this.extensions,
     this.async = false,
     this.showExtension = true,
+    this.openHandler,
+    this.saveAsHandler,
+    this.getFileDataHandler,
   }) {
     selectedFile = null;
   }
 
-  final WindowController windowController;
+  final WindowController? windowController;
 
   /// To visualize file data
   final FileData file;
@@ -49,6 +52,12 @@ class FilePickerWidget extends StatefulWidget {
 
   /// Lastly selected file
   static FileData? selectedFile;
+
+  final Function(String path)? openHandler;
+
+  final Function(String path)? saveAsHandler;
+
+  final Future<FileData> Function(String path)? getFileDataHandler;
 
   @override
   State<FilePickerWidget> createState() => _FilePickerWidgetState();
@@ -92,26 +101,33 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
               setState(() {
                 _waitingForData = true;
               });
-              var json = await DesktopMultiWindow.invokeMethod(
-                0,
-                "getFileData",
-                currentFileData.getPath(),
-              );
 
-              Map<String, dynamic> data = jsonDecode(json);
-              FileData fileData = FileData.fromJson(data["file"]);
+              FileData fileData;
 
-              // Retrieve parent hierarchy through path data
-              FileData parent = fileData;
-              List<String> paths = (data["path"] as String).split("/");
-              for (int i = paths.length - 2; i >= 0; i--) {
-                parent.parent = FileData.createFolder(paths[i], DateTime.now(), [parent]);
-                parent = parent.parent!;
-              }
+              if (widget.windowController != null) {
+                var json = await DesktopMultiWindow.invokeMethod(
+                  0,
+                  "getFileData",
+                  currentFileData.getPath(),
+                );
 
-              // set parent references
-              for (FileData child in fileData.children) {
-                child.parent = fileData;
+                Map<String, dynamic> data = jsonDecode(json);
+                fileData = FileData.fromJson(data["file"]);
+
+                // Retrieve parent hierarchy through path data
+                FileData parent = fileData;
+                List<String> paths = (data["path"] as String).split("/");
+                for (int i = paths.length - 2; i >= 0; i--) {
+                  parent.parent = FileData.createFolder(paths[i], DateTime.now(), [parent]);
+                  parent = parent.parent!;
+                }
+
+                // set parent references
+                for (FileData child in fileData.children) {
+                  child.parent = fileData;
+                }
+              } else {
+                fileData = await widget.getFileDataHandler!(currentFileData.getPath());
               }
 
               setState(() {
@@ -260,16 +276,22 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                                       _waitingForData = true;
                                     });
 
-                                    var json = await DesktopMultiWindow.invokeMethod(
-                                      0,
-                                      "getFileData",
-                                      file.children[index].getPath(),
-                                      // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
-                                    );
+                                    FileData fileData;
 
-                                    FileData fileData = FileData.fromJson(jsonDecode(json)["file"]);
-                                    for (FileData child in fileData.children) {
-                                      child.parent = fileData;
+                                    if (widget.windowController != null) {
+                                      var json = await DesktopMultiWindow.invokeMethod(
+                                        0,
+                                        "getFileData",
+                                        file.children[index].getPath(),
+                                        // jsonEncode(FilePickerWidget.selectedFile!.toJson()),
+                                      );
+
+                                      fileData = FileData.fromJson(jsonDecode(json)["file"]);
+                                      for (FileData child in fileData.children) {
+                                        child.parent = fileData;
+                                      }
+                                    } else {
+                                      fileData = await widget.getFileDataHandler!(file.children[index].getPath());
                                     }
 
                                     file.children[index] = fileData;
@@ -370,13 +392,19 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                             // remove children data to decrease String size
                             FilePickerWidget.selectedFile!.children = [];
 
-                            await DesktopMultiWindow.invokeMethod(
-                              0,
-                              "open",
-                              "${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}",
-                            );
+                            if (widget.windowController != null) {
+                              // mulit window varaint
+                              await DesktopMultiWindow.invokeMethod(
+                                0,
+                                "open",
+                                "${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}",
+                              );
 
-                            widget.windowController.close();
+                              widget.windowController!.close();
+                            } else if (widget.openHandler != null) {
+                              // inscreen variant
+                              widget.openHandler!(FilePickerWidget.selectedFile!.getPath());
+                            }
                           } else if (widget.saveAs) {
                             widget.suggestedFile!.name = _textEditingController.text;
 
@@ -386,24 +414,39 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                                   "${widget.suggestedFile!.name}${widget.suggestedFile!.isFolder ? "" : ".${widget.suggestedFile!.extension}"}", () async {
                                 widget.suggestedFile!.parent = _openedFile;
 
+                                if (widget.windowController != null) {
+                                  // mulit window varaint
+                                  await DesktopMultiWindow.invokeMethod(
+                                    0,
+                                    "saveAs",
+                                    "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
+                                  );
+
+                                  widget.windowController!.close();
+                                } else if (widget.openHandler != null) {
+                                  // inscreen variant
+                                  widget.saveAsHandler!(widget.suggestedFile!.getPath());
+
+                                  Navigator.of(context).pop();
+                                }
+                              });
+                            } else {
+                              widget.suggestedFile!.parent = _openedFile;
+                              if (widget.windowController != null) {
+                                // mulit window varaint
                                 await DesktopMultiWindow.invokeMethod(
                                   0,
                                   "saveAs",
                                   "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
                                 );
 
-                                widget.windowController.close();
-                              });
-                            } else {
-                              widget.suggestedFile!.parent = _openedFile;
+                                widget.windowController!.close();
+                              } else if (widget.openHandler != null) {
+                                // inscreen variant
+                                widget.saveAsHandler!(widget.suggestedFile!.getPath());
 
-                              await DesktopMultiWindow.invokeMethod(
-                                0,
-                                "saveAs",
-                                "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
-                              );
-
-                              widget.windowController.close();
+                                Navigator.of(context).pop();
+                              }
                             }
                           }
                         },
@@ -411,7 +454,13 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                     const SizedBox(width: 10),
                     ElevatedButton(
                         onPressed: () {
-                          widget.windowController.close();
+                          if (widget.windowController != null) {
+                            // mulit window varaint
+                            widget.windowController!.close();
+                          } else {
+                            // inscreen variant
+                            Navigator.of(context).pop();
+                          }
                         },
                         child: const Text("Cancel")),
                     const SizedBox(width: 10),

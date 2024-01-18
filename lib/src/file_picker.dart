@@ -17,7 +17,6 @@ class FilePicker {
       int windowId = int.parse(args[1]);
       Map<String, dynamic> data = jsonDecode(args[2]);
 
-      // List<FileData> files = (data["files"] as List<dynamic>).map((e) => FileData.fromJson(e)).toList();
       FileData file = FileData.fromJson(data["file"]);
 
       // Retrieve parent hierarchy through path data
@@ -105,6 +104,7 @@ class FilePicker {
   /// [extensions] : Is a list of file extensions that the user is allowed to select.
   /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
   /// [showExtension] : Whether or not the file extension will be displayed
+  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -117,31 +117,47 @@ class FilePicker {
     List<String> extensions,
     Function(String path) onSelectedFile, {
     bool showExtension = true,
+    BuildContext? context,
   }) async {
     FileData files = fileHistory.copy();
     _keepOnlyExtension(files, extensions);
 
-    final window = await DesktopMultiWindow.createWindow(jsonEncode({
-      'file': files,
-      'path': files.getPath(),
-      'saveAs': false,
-      'showExtension': showExtension,
-      'extensions': extensions,
-    }));
-    window
-      ..setFrame(const Offset(0, 0) & const Size(800, 450))
-      ..center()
-      ..setTitle('File Picker')
-      ..show();
+    if (context == null) {
+      final window = await DesktopMultiWindow.createWindow(jsonEncode({
+        'file': files,
+        'path': files.getPath(),
+        'saveAs': false,
+        'showExtension': showExtension,
+        'extensions': extensions,
+      }));
+      window
+        ..setFrame(const Offset(0, 0) & const Size(800, 450))
+        ..center()
+        ..setTitle('File Picker')
+        ..show();
 
-    DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
-      switch (call.method) {
-        case "open":
-          onSelectedFile(call.arguments);
-      }
+      DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
+        switch (call.method) {
+          case "open":
+            onSelectedFile(call.arguments);
+        }
 
-      return "";
-    });
+        return "";
+      });
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return FilePickerWidget(
+            file: files,
+            saveAs: false,
+            extensions: extensions,
+            showExtension: showExtension,
+            openHandler: onSelectedFile,
+          );
+        },
+      );
+    }
   }
 
   /// Opens the file picker dialog and allows the user to select a file.
@@ -153,6 +169,7 @@ class FilePicker {
   /// [extensions] : Is a list of file extensions that the user is allowed to select.
   /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
   /// [showExtension] : Whether or not the file extension will be displayed
+  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -169,38 +186,60 @@ class FilePicker {
     Future<FileData> Function(String path) getFileData,
     Function(String path) onSelectedFile, {
     bool showExtension = true,
+    BuildContext? context,
   }) async {
     FileData files = fileHistory.copy();
     _keepOnlyExtension(files, extensions);
 
-    final window = await DesktopMultiWindow.createWindow(jsonEncode({
-      'file': files,
-      'path': files.getPath(),
-      'saveAs': false,
-      'extensions': extensions,
-      'showExtension': showExtension,
-      'async': true,
-    }));
-    window
-      ..setFrame(const Offset(0, 0) & const Size(800, 450))
-      ..center()
-      ..setTitle('File Picker')
-      ..show();
+    if (context == null) {
+      final window = await DesktopMultiWindow.createWindow(jsonEncode({
+        'file': files,
+        'path': files.getPath(),
+        'saveAs': false,
+        'extensions': extensions,
+        'showExtension': showExtension,
+        'async': true,
+      }));
+      window
+        ..setFrame(const Offset(0, 0) & const Size(800, 450))
+        ..center()
+        ..setTitle('File Picker')
+        ..show();
 
-    DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
-      switch (call.method) {
-        case "getFileData":
-          FileData newFileData = (await getFileData(call.arguments)).copy();
-          _keepOnlyExtension(newFileData, extensions);
-          return jsonEncode({'file': newFileData, 'path': newFileData.getPath()});
+      DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
+        switch (call.method) {
+          case "getFileData":
+            FileData newFileData = (await getFileData(call.arguments)).copy();
+            _keepOnlyExtension(newFileData, extensions);
+            return jsonEncode({'file': newFileData, 'path': newFileData.getPath()});
 
-        case "open":
-          onSelectedFile(call.arguments);
-          break;
-      }
+          case "open":
+            onSelectedFile(call.arguments);
+            break;
+        }
 
-      return "";
-    });
+        return "";
+      });
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return FilePickerWidget(
+            file: files,
+            saveAs: false,
+            extensions: extensions,
+            showExtension: showExtension,
+            async: true,
+            getFileDataHandler: (path) async {
+              FileData newFileData = (await getFileData(path)).copy();
+              _keepOnlyExtension(newFileData, extensions);
+              return newFileData;
+            },
+            openHandler: onSelectedFile,
+          );
+        },
+      );
+    }
   }
 
   /// Saves the selected file as a new file.
@@ -208,6 +247,8 @@ class FilePicker {
   /// [fileHistory] : Represents the history of previously selected files.
   /// [suggestedFile] : Represents the file that is suggested to be saved.
   /// [onSelectedFile] : Is a callback function that is called when a file is selected.
+  /// [showExtension] : Whether or not the file extension will be displayed
+  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -220,31 +261,47 @@ class FilePicker {
     FileData suggestedFile,
     Function(String path) onSelectedFile, {
     bool showExtension = true,
+    BuildContext? context,
   }) async {
     FileData files = fileHistory.copy();
     _removeFiles(files, [suggestedFile.extension!]);
 
-    final window = await DesktopMultiWindow.createWindow(jsonEncode({
-      'file': files,
-      'path': files.getPath(),
-      'saveAs': true,
-      'suggestedFile': suggestedFile,
-      'showExtension': showExtension,
-    }));
-    window
-      ..setFrame(const Offset(0, 0) & const Size(800, 450))
-      ..center()
-      ..setTitle('File Picker')
-      ..show();
+    if (context == null) {
+      final window = await DesktopMultiWindow.createWindow(jsonEncode({
+        'file': files,
+        'path': files.getPath(),
+        'saveAs': true,
+        'suggestedFile': suggestedFile,
+        'showExtension': showExtension,
+      }));
+      window
+        ..setFrame(const Offset(0, 0) & const Size(800, 450))
+        ..center()
+        ..setTitle('File Picker')
+        ..show();
 
-    DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
-      switch (call.method) {
-        case "saveAs":
-          onSelectedFile(call.arguments);
-      }
+      DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
+        switch (call.method) {
+          case "saveAs":
+            onSelectedFile(call.arguments);
+        }
 
-      return "";
-    });
+        return "";
+      });
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return FilePickerWidget(
+            file: files,
+            saveAs: false,
+            suggestedFile: suggestedFile,
+            showExtension: showExtension,
+            saveAsHandler: onSelectedFile,
+          );
+        },
+      );
+    }
   }
 
   /// Saves the selected file as a new file.
@@ -255,6 +312,8 @@ class FilePicker {
   /// [fileHistory] : Represents the history of previously selected files.
   /// [suggestedFile] : Represents the file that is suggested to be saved.
   /// [onSelectedFile] : Is a callback function that is called when a file is selected.
+  /// [showExtension] : Whether or not the file extension will be displayed
+  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -271,37 +330,59 @@ class FilePicker {
     Future<FileData> Function(String path) getFileData,
     Function(String path) onSelectedFile, {
     bool showExtension = true,
+    BuildContext? context,
   }) async {
     FileData files = fileHistory.copy();
     _removeFiles(files, [suggestedFile.extension!]);
 
-    final window = await DesktopMultiWindow.createWindow(jsonEncode({
-      'file': files,
-      'path': files.getPath(),
-      'saveAs': true,
-      'suggestedFile': suggestedFile,
-      'showExtension': showExtension,
-      'async': true,
-    }));
-    window
-      ..setFrame(const Offset(0, 0) & const Size(800, 450))
-      ..center()
-      ..setTitle('File Picker')
-      ..show();
+    if (context == null) {
+      final window = await DesktopMultiWindow.createWindow(jsonEncode({
+        'file': files,
+        'path': files.getPath(),
+        'saveAs': true,
+        'suggestedFile': suggestedFile,
+        'showExtension': showExtension,
+        'async': true,
+      }));
+      window
+        ..setFrame(const Offset(0, 0) & const Size(800, 450))
+        ..center()
+        ..setTitle('File Picker')
+        ..show();
 
-    DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
-      switch (call.method) {
-        case "getFileData":
-          FileData newFileData = (await getFileData(call.arguments)).copy();
-          _removeFiles(newFileData, [suggestedFile.extension!]);
-          return jsonEncode({'file': newFileData, 'path': newFileData.getPath()});
+      DesktopMultiWindow.setMethodHandler((call, fromWindowId) async {
+        switch (call.method) {
+          case "getFileData":
+            FileData newFileData = (await getFileData(call.arguments)).copy();
+            _removeFiles(newFileData, [suggestedFile.extension!]);
+            return jsonEncode({'file': newFileData, 'path': newFileData.getPath()});
 
-        case "saveAs":
-          onSelectedFile(call.arguments);
-          break;
-      }
+          case "saveAs":
+            onSelectedFile(call.arguments);
+            break;
+        }
 
-      return "";
-    });
+        return "";
+      });
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return FilePickerWidget(
+            file: files,
+            saveAs: false,
+            suggestedFile: suggestedFile,
+            showExtension: showExtension,
+            async: true,
+            getFileDataHandler: (path) async {
+              FileData newFileData = (await getFileData(path)).copy();
+              _removeFiles(newFileData, [suggestedFile.extension!]);
+              return newFileData;
+            },
+            saveAsHandler: onSelectedFile,
+          );
+        },
+      );
+    }
   }
 }
