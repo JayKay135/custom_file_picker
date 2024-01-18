@@ -53,10 +53,13 @@ class FilePickerWidget extends StatefulWidget {
   /// Lastly selected file
   static FileData? selectedFile;
 
+  /// Opened file handler for inscreen selection variant
   final Function(String path)? openHandler;
 
+  /// Saved file handler for inscreen selection variant
   final Function(String path)? saveAsHandler;
 
+  /// Asynchronous hierarchy loader for inscreen selection variant
   final Future<FileData> Function(String path)? getFileDataHandler;
 
   @override
@@ -360,8 +363,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
             Positioned(
               bottom: 0,
               child: Container(
-                color: Theme.of(context).colorScheme.surface,
-                width: constraints.maxWidth,
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10)),
+                width: constraints.maxWidth - 20,
                 // height: 58,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -555,6 +558,6 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _createContent(_openedFile);
+    return Material(child: _createContent(_openedFile));
   }
 }
