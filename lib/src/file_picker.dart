@@ -104,7 +104,7 @@ class FilePicker {
   /// [extensions] : Is a list of file extensions that the user is allowed to select.
   /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
   /// [showExtension] : Whether or not the file extension will be displayed
-  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
+  /// [context] : Uses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -147,13 +147,17 @@ class FilePicker {
     } else {
       showDialog(
         context: context,
+        barrierColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xDE000000) : const Color.fromARGB(222, 255, 255, 255),
         builder: (context) {
-          return FilePickerWidget(
-            file: files,
-            saveAs: false,
-            extensions: extensions,
-            showExtension: showExtension,
-            openHandler: onSelectedFile,
+          return Padding(
+            padding: const EdgeInsets.all(30),
+            child: FilePickerWidget(
+              file: files,
+              saveAs: false,
+              extensions: extensions,
+              showExtension: showExtension,
+              openHandler: onSelectedFile,
+            ),
           );
         },
       );
@@ -169,7 +173,7 @@ class FilePicker {
   /// [extensions] : Is a list of file extensions that the user is allowed to select.
   /// [onSelectedFile] : Is a callback function that will be called when the user selects a file. It takes a single parameter, which is the path of the selected file.
   /// [showExtension] : Whether or not the file extension will be displayed
-  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
+  /// [context] : Uses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -223,19 +227,23 @@ class FilePicker {
     } else {
       showDialog(
         context: context,
+        barrierColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xDE000000) : const Color.fromARGB(222, 255, 255, 255),
         builder: (context) {
-          return FilePickerWidget(
-            file: files,
-            saveAs: false,
-            extensions: extensions,
-            showExtension: showExtension,
-            async: true,
-            getFileDataHandler: (path) async {
-              FileData newFileData = (await getFileData(path)).copy();
-              _keepOnlyExtension(newFileData, extensions);
-              return newFileData;
-            },
-            openHandler: onSelectedFile,
+          return Padding(
+            padding: const EdgeInsets.all(30),
+            child: FilePickerWidget(
+              file: files,
+              saveAs: false,
+              extensions: extensions,
+              showExtension: showExtension,
+              async: true,
+              getFileDataHandler: (path) async {
+                FileData newFileData = (await getFileData(path)).copy();
+                _keepOnlyExtension(newFileData, extensions);
+                return newFileData;
+              },
+              openHandler: onSelectedFile,
+            ),
           );
         },
       );
@@ -248,7 +256,7 @@ class FilePicker {
   /// [suggestedFile] : Represents the file that is suggested to be saved.
   /// [onSelectedFile] : Is a callback function that is called when a file is selected.
   /// [showExtension] : Whether or not the file extension will be displayed
-  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
+  /// [context] : Uses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -291,13 +299,17 @@ class FilePicker {
     } else {
       showDialog(
         context: context,
+        barrierColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xDE000000) : const Color.fromARGB(222, 255, 255, 255),
         builder: (context) {
-          return FilePickerWidget(
-            file: files,
-            saveAs: false,
-            suggestedFile: suggestedFile,
-            showExtension: showExtension,
-            saveAsHandler: onSelectedFile,
+          return Padding(
+            padding: const EdgeInsets.all(30),
+            child: FilePickerWidget(
+              file: files,
+              saveAs: true,
+              suggestedFile: suggestedFile,
+              showExtension: showExtension,
+              saveAsHandler: onSelectedFile,
+            ),
           );
         },
       );
@@ -313,7 +325,7 @@ class FilePicker {
   /// [suggestedFile] : Represents the file that is suggested to be saved.
   /// [onSelectedFile] : Is a callback function that is called when a file is selected.
   /// [showExtension] : Whether or not the file extension will be displayed
-  /// [context] : Useses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
+  /// [context] : Uses the inscreen variant whenever a [BuildContext] is provided. Otherwise defaults to a muli window version.
   ///
   /// Example usage:
   /// ```dart
@@ -367,19 +379,23 @@ class FilePicker {
     } else {
       showDialog(
         context: context,
+        barrierColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xDE000000) : const Color.fromARGB(222, 255, 255, 255),
         builder: (context) {
-          return FilePickerWidget(
-            file: files,
-            saveAs: false,
-            suggestedFile: suggestedFile,
-            showExtension: showExtension,
-            async: true,
-            getFileDataHandler: (path) async {
-              FileData newFileData = (await getFileData(path)).copy();
-              _removeFiles(newFileData, [suggestedFile.extension!]);
-              return newFileData;
-            },
-            saveAsHandler: onSelectedFile,
+          return Padding(
+            padding: const EdgeInsets.all(30),
+            child: FilePickerWidget(
+              file: files,
+              saveAs: true,
+              suggestedFile: suggestedFile,
+              showExtension: showExtension,
+              async: true,
+              getFileDataHandler: (path) async {
+                FileData newFileData = (await getFileData(path)).copy();
+                _removeFiles(newFileData, [suggestedFile.extension!]);
+                return newFileData;
+              },
+              saveAsHandler: onSelectedFile,
+            ),
           );
         },
       );
