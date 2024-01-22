@@ -48,12 +48,10 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
 
   /// Creates the list content based on the given [constraints].
   List<Widget> _createListContent(BoxConstraints constraints) {
-    if (maxSize !=
-        constraints.maxWidth - dividerSize * (widget.widgets.length - 1)) {
-      maxSize =
-          constraints.maxWidth - dividerSize * (widget.widgets.length - 1);
+    if (maxSize != constraints.maxWidth - dividerSize * (widget.widgets.length - 1)) {
+      maxSize = constraints.maxWidth - dividerSize * (widget.widgets.length - 1);
 
-      sizes[0] ??= 220;
+      sizes[0] ??= maxSize / 2;
       sizes[1] = maxSize - sizes[0]! - 5;
 
       widget.sizesChanged?.call(sizes.map((e) => e!).toList());
@@ -85,9 +83,7 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
             children: [
               // this is the actual line that changes width
               Container(
-                color: dragging[i]
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.outlineVariant,
+                color: dragging[i] ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outlineVariant,
                 width: dragging[i] ? dividerSize : 1,
                 height: double.infinity,
               ),
@@ -121,14 +117,11 @@ class _SplitViewWidgetState extends State<SplitViewWidget> {
                       //   sizes[i + 1] = newWidth2;
                       // }
 
-                      double newWidth1 = (startSizes[i] + totalDelta)
-                          .clamp(minWidth, maxSize - minWidth);
-                      double newWidth2 = (startSizes[i + 1] - totalDelta)
-                          .clamp(minWidth, maxSize - minWidth);
+                      double newWidth1 = (startSizes[i] + totalDelta).clamp(minWidth, maxSize - minWidth);
+                      double newWidth2 = (startSizes[i + 1] - totalDelta).clamp(minWidth, maxSize - minWidth);
 
                       // ensure total size doesn't exceed maxSize
-                      if (newWidth1 + newWidth2 <=
-                          startSizes[i] + startSizes[i + 1]) {
+                      if (newWidth1 + newWidth2 <= startSizes[i] + startSizes[i + 1]) {
                         // + 0.01
                         sizes[i] = newWidth1;
                         sizes[i + 1] = newWidth2;
