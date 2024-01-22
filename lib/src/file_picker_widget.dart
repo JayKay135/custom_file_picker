@@ -76,6 +76,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
   late bool _waitingForData;
 
+  late FocusNode _textFieldFocusNode;
+
   /// Creates the header widget for the file picker.
   ///
   /// This method takes a [FileData] object as a parameter and returns a widget
@@ -192,6 +194,11 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
   /// Creates the content widget for the given [file].
   Widget _createContent(FileData file) {
+    if (widget.windowController == null && widget.saveAs) {
+      _textFieldFocusNode = FocusNode();
+      WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context).requestFocus(_textFieldFocusNode));
+    }
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) => Padding(
         padding: const EdgeInsets.all(10),
@@ -373,6 +380,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                         ? Expanded(
                             child: TextField(
                               controller: _textEditingController,
+                              focusNode: _textFieldFocusNode,
                               decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
                             ),
                           )
@@ -546,12 +554,15 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
     _waitingForData = false;
 
+    _textFieldFocusNode = FocusNode();
+
     super.initState();
   }
 
   @override
   void dispose() {
     _textEditingController.dispose();
+    _textFieldFocusNode.dispose();
 
     super.dispose();
   }
