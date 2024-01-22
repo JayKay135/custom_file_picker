@@ -100,8 +100,10 @@ class _FileWidgetState extends State<FileWidget> {
                   if (selected && !widget.fileData.isFolder) {
                     _FileWidgetState? lastFileWidget = FileWidget.lastSelectedFile;
                     FileWidget.lastSelectedFile = this;
-                    lastFileWidget?.setState(() {});
 
+                    if (lastFileWidget != null && lastFileWidget.mounted) {
+                      lastFileWidget.setState(() {});
+                    }
                     FilePickerWidget.selectedFile = FilePickerWidget.selectedFile == widget.fileData ? null : widget.fileData;
                   }
                 });
