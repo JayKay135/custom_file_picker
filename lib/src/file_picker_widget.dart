@@ -194,11 +194,6 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
 
   /// Creates the content widget for the given [file].
   Widget _createContent(FileData file) {
-    if (widget.windowController == null && widget.saveAs) {
-      _textFieldFocusNode = FocusNode();
-      WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context).requestFocus(_textFieldFocusNode));
-    }
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) => Padding(
         padding: const EdgeInsets.all(10),
@@ -415,6 +410,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                             } else if (widget.openHandler != null) {
                               // inscreen variant
                               widget.openHandler!(FilePickerWidget.selectedFile!.getPath());
+
+                              Navigator.of(context).pop();
                             }
                           } else if (widget.saveAs) {
                             widget.suggestedFile!.name = _textEditingController.text;
@@ -434,7 +431,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                                   );
 
                                   widget.windowController!.close();
-                                } else if (widget.openHandler != null) {
+                                } else if (widget.saveAsHandler != null) {
                                   // inscreen variant
                                   widget.saveAsHandler!(widget.suggestedFile!.getPath());
 
@@ -452,7 +449,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                                 );
 
                                 widget.windowController!.close();
-                              } else if (widget.openHandler != null) {
+                              } else if (widget.saveAsHandler != null) {
                                 // inscreen variant
                                 widget.saveAsHandler!(widget.suggestedFile!.getPath());
 
@@ -557,6 +554,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
     _textFieldFocusNode = FocusNode();
 
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context).requestFocus(_textFieldFocusNode));
   }
 
   @override
