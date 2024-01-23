@@ -409,7 +409,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                               widget.windowController!.close();
                             } else if (widget.openHandler != null) {
                               // inscreen variant
-                              widget.openHandler!(FilePickerWidget.selectedFile!.getPath());
+                              widget.openHandler!("${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}");
 
                               Navigator.of(context).pop();
                             }
@@ -433,7 +433,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                                   widget.windowController!.close();
                                 } else if (widget.saveAsHandler != null) {
                                   // inscreen variant
-                                  widget.saveAsHandler!(widget.suggestedFile!.getPath());
+                                  widget.saveAsHandler!("${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}");
 
                                   Navigator.of(context).pop();
                                 }
@@ -451,7 +451,7 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                                 widget.windowController!.close();
                               } else if (widget.saveAsHandler != null) {
                                 // inscreen variant
-                                widget.saveAsHandler!(widget.suggestedFile!.getPath());
+                                widget.saveAsHandler!("${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}");
 
                                 Navigator.of(context).pop();
                               }
