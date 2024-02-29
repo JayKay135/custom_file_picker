@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:flutter/widgets.dart';
 
 import 'custom_button.dart';
 import 'file_widget.dart';
@@ -77,6 +75,73 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
   late bool _waitingForData;
 
   late FocusNode _textFieldFocusNode;
+
+  /// Opens the selected file and handles the corresponding window channel invocation
+  Future<void> _openFile() async {
+    // remove children data to decrease String size
+    FilePickerWidget.selectedFile!.children = [];
+
+    if (widget.windowController != null) {
+      // mulit window varaint
+      await DesktopMultiWindow.invokeMethod(
+        0,
+        "open",
+        "${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}",
+      );
+
+      widget.windowController!.close();
+    } else if (widget.openHandler != null) {
+      // inscreen variant
+      widget.openHandler!("${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}");
+
+      Navigator.of(context).pop();
+    }
+  }
+
+  /// Saves the selected file and handles the corresponding window channel invocation
+  Future<void> _saveFileAs(FileData file) async {
+    widget.suggestedFile!.name = _textEditingController.text;
+
+    if (file.children.firstWhereOrNull((element) => element.name == widget.suggestedFile!.name) != null) {
+      // choosen name identical to already exisiting file
+      _showFileAlreadyExistsScreen("${widget.suggestedFile!.name}${widget.suggestedFile!.isFolder ? "" : ".${widget.suggestedFile!.extension}"}", () async {
+        widget.suggestedFile!.parent = _openedFile;
+
+        if (widget.windowController != null) {
+          // mulit window varaint
+          await DesktopMultiWindow.invokeMethod(
+            0,
+            "saveAs",
+            "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
+          );
+
+          widget.windowController!.close();
+        } else if (widget.saveAsHandler != null) {
+          // inscreen variant
+          widget.saveAsHandler!("${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}");
+
+          Navigator.of(context).pop();
+        }
+      });
+    } else {
+      widget.suggestedFile!.parent = _openedFile;
+      if (widget.windowController != null) {
+        // mulit window varaint
+        await DesktopMultiWindow.invokeMethod(
+          0,
+          "saveAs",
+          "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
+        );
+
+        widget.windowController!.close();
+      } else if (widget.saveAsHandler != null) {
+        // inscreen variant
+        widget.saveAsHandler!("${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}");
+
+        Navigator.of(context).pop();
+      }
+    }
+  }
 
   /// Creates the header widget for the file picker.
   ///
@@ -274,6 +339,11 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                               sizes: sizes,
                               deselect: _deselectAll,
                               showExtension: widget.showExtension,
+                              onTab: () {
+                                if (!file.children[index].isFolder) {
+                                  _textEditingController.text = file.children[index].name;
+                                }
+                              },
                               onDoubleTab: () async {
                                 if (file.children[index].isFolder) {
                                   if (widget.async) {
@@ -315,6 +385,8 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                                   setState(() {
                                     _deselectAll = false;
                                   });
+                                } else if (!widget.saveAs) {
+                                  _openFile();
                                 }
                               },
                             );
@@ -395,67 +467,9 @@ class _FilePickerWidgetState extends State<FilePickerWidget> {
                     ElevatedButton(
                         onPressed: () async {
                           if (!widget.saveAs && FilePickerWidget.selectedFile != null) {
-                            // remove children data to decrease String size
-                            FilePickerWidget.selectedFile!.children = [];
-
-                            if (widget.windowController != null) {
-                              // mulit window varaint
-                              await DesktopMultiWindow.invokeMethod(
-                                0,
-                                "open",
-                                "${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}",
-                              );
-
-                              widget.windowController!.close();
-                            } else if (widget.openHandler != null) {
-                              // inscreen variant
-                              widget.openHandler!("${FilePickerWidget.selectedFile!.getPath()}.${FilePickerWidget.selectedFile!.extension}");
-
-                              Navigator.of(context).pop();
-                            }
+                            _openFile();
                           } else if (widget.saveAs) {
-                            widget.suggestedFile!.name = _textEditingController.text;
-
-                            if (file.children.firstWhereOrNull((element) => element.name == widget.suggestedFile!.name) != null) {
-                              // choosen name identical to already exisiting file
-                              _showFileAlreadyExistsScreen(
-                                  "${widget.suggestedFile!.name}${widget.suggestedFile!.isFolder ? "" : ".${widget.suggestedFile!.extension}"}", () async {
-                                widget.suggestedFile!.parent = _openedFile;
-
-                                if (widget.windowController != null) {
-                                  // mulit window varaint
-                                  await DesktopMultiWindow.invokeMethod(
-                                    0,
-                                    "saveAs",
-                                    "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
-                                  );
-
-                                  widget.windowController!.close();
-                                } else if (widget.saveAsHandler != null) {
-                                  // inscreen variant
-                                  widget.saveAsHandler!("${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}");
-
-                                  Navigator.of(context).pop();
-                                }
-                              });
-                            } else {
-                              widget.suggestedFile!.parent = _openedFile;
-                              if (widget.windowController != null) {
-                                // mulit window varaint
-                                await DesktopMultiWindow.invokeMethod(
-                                  0,
-                                  "saveAs",
-                                  "${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}",
-                                );
-
-                                widget.windowController!.close();
-                              } else if (widget.saveAsHandler != null) {
-                                // inscreen variant
-                                widget.saveAsHandler!("${widget.suggestedFile!.getPath()}.${widget.suggestedFile!.extension}");
-
-                                Navigator.of(context).pop();
-                              }
-                            }
+                            _saveFileAs(file);
                           }
                         },
                         child: Text(widget.saveAs ? "Save As" : "Open")),

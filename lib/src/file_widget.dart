@@ -10,6 +10,7 @@ class FileWidget extends StatefulWidget {
   FileWidget({
     super.key,
     required this.fileData,
+    this.onTab,
     this.onDoubleTab,
     this.sizes,
     this.deselect = false,
@@ -19,6 +20,7 @@ class FileWidget extends StatefulWidget {
   }
 
   final FileData fileData;
+  final Function? onTab;
   final Function? onDoubleTab;
   final List<double>? sizes;
   final bool deselect;
@@ -107,6 +109,7 @@ class _FileWidgetState extends State<FileWidget> {
                     FilePickerWidget.selectedFile = FilePickerWidget.selectedFile == widget.fileData ? null : widget.fileData;
                   }
                 });
+                widget.onTab?.call();
               }
               ..onDoubleTap = () {
                 widget.onDoubleTab?.call();
